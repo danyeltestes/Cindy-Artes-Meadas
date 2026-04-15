@@ -1,0 +1,709 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CA - Cindy Artes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --rose-primary: #F4ACB7;
+            --rose-bg: #FFF8F9;
+            --text-main: #5E4B4E;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--rose-bg);
+            color: var(--text-main);
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-serif { font-family: 'Playfair Display', serif; }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1.5px solid rgba(244, 172, 183, 0.2);
+            box-shadow: 0 8px 25px -5px rgba(244, 172, 183, 0.1);
+        }
+
+        /* Grade do Catálogo 3x3 */
+        .catalog-grid-item {
+            aspect-ratio: 1 / 1;
+            border-radius: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.1s ease;
+        }
+        .catalog-grid-item:active { transform: scale(0.92); }
+
+        .edit-side-btn {
+            position: absolute;
+            right: 6px;
+            background: rgba(255,255,255,0.9);
+            padding: 6px;
+            border-radius: 99px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            color: var(--rose-primary);
+            z-index: 10;
+        }
+
+        .catalog-code-badge {
+            background: rgba(255,255,255,0.85);
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 900;
+            margin-top: auto;
+            margin-bottom: 8px;
+            color: #5E4B4E;
+            z-index: 5;
+        }
+
+        /* Carretel Visual */
+        .spool-box {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            border: 6px solid white;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.1), 0 6px 15px rgba(244, 172, 183, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .spool-box::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.1) 3px, rgba(255,255,255,0.1) 6px);
+        }
+
+        .tab-active {
+            background: #F4ACB7 !important;
+            color: white !important;
+            transform: scale(1.03);
+        }
+
+        .iphone-container {
+            max-width: 414px;
+            margin: 0 auto;
+        }
+
+        .btn-action {
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-action:active { transform: scale(0.92); opacity: 0.8; }
+
+        .modal-overlay {
+            background: rgba(94, 75, 78, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        #toast { transition: opacity 0.8s ease-out, transform 0.4s ease; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="iphone-container pb-40">
+        
+        <!-- HEADER CA -->
+        <header class="pt-12 pb-6 px-8 text-center relative">
+            <h1 class="text-7xl font-serif text-[#D68C96] italic leading-none tracking-tighter">CA</h1>
+            <p class="text-[9px] font-black uppercase tracking-[0.4em] opacity-40 mt-3">Cindy Artes Meadas</p>
+            <p class="text-[7px] font-bold opacity-20 mt-1 uppercase tracking-widest">Versão CAM.15.04#21 • Jeans & Colors</p>
+        </header>
+
+        <!-- NAVEGAÇÃO SUPERIOR -->
+        <nav class="sticky top-4 z-50 flex justify-center gap-2 px-6 mb-6">
+            <button onclick="switchTab('estoque')" id="nav-estoque" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action tab-active">Caixa</button>
+            <button onclick="switchTab('compras')" id="nav-compras" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action">Comprar</button>
+            <button onclick="switchTab('catalogo')" id="nav-catalogo" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action">Cores</button>
+        </nav>
+
+        <!-- BUSCA -->
+        <div class="px-6 mb-8">
+            <div class="relative">
+                <input type="text" id="searchBar" oninput="renderApp()" placeholder="Buscar código ou tom..." 
+                    class="w-full p-5 pl-14 rounded-[2.5rem] glass-card outline-none text-xl font-semibold border-none focus:ring-4 ring-pink-100 transition-all">
+                <i data-lucide="search" class="absolute left-6 top-5 text-pink-300 w-7 h-7"></i>
+            </div>
+        </div>
+
+        <!-- LISTA PRINCIPAL -->
+        <main id="app-grid" class="px-6 grid gap-6">
+            <!-- Injetado via JS -->
+        </main>
+
+        <!-- BOTÕES FLUTUANTES -->
+        <div class="fixed bottom-10 right-6 z-[60] flex flex-col gap-4">
+            <button onclick="openColorModal()" class="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-pink-400 border border-pink-50 btn-action">
+                <i data-lucide="palette" class="w-5 h-5"></i>
+            </button>
+            <button onclick="openAddModal()" class="w-16 h-16 rounded-full bg-[#F4ACB7] text-white shadow-xl flex items-center justify-center btn-action shadow-pink-100">
+                <i data-lucide="plus" class="w-10 h-10"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR / EDITAR -->
+    <div id="modalAdd" class="fixed inset-0 modal-overlay z-[100] hidden flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl animate-pop overflow-y-auto max-h-[85vh]">
+            <h2 id="modalTitle" class="text-3xl font-serif text-[#8E5D67] mb-8 text-center">Nova Meada</h2>
+            <div class="space-y-6">
+                <div class="relative">
+                    <label class="text-[9px] font-black opacity-30 ml-4 mb-1 block uppercase text-center tracking-widest">Código da Linha</label>
+                    <div class="relative flex justify-center">
+                        <input type="tel" id="meadaNumeroRaw" oninput="formatSmartCode(this.value)" maxlength="5" class="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full">
+                        <div id="meadaNumeroDisplay" class="w-full p-5 rounded-[2rem] bg-rose-50 text-4xl font-black text-center text-[#D68C96]">00000</div>
+                    </div>
+                    <div id="suggestionBox" class="hidden absolute top-full left-0 right-0 mt-3 p-5 bg-white border-2 border-pink-100 rounded-[2.5rem] z-20 shadow-2xl animate-pop">
+                        <div class="flex items-center gap-4 cursor-pointer" id="applySuggest">
+                            <div id="suggestColorPreview" class="w-14 h-14 rounded-full border-2 border-white shadow-md"></div>
+                            <div class="flex-1">
+                                <p id="suggestName" class="font-black text-base text-[#8E5D67] leading-tight"></p>
+                                <p class="text-[9px] font-bold opacity-30 uppercase tracking-tighter text-center">Usar este Tom</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black opacity-30 ml-4 mb-1 block uppercase text-center">Nome do Tom</label>
+                    <input type="text" id="meadaNome" class="w-full p-4 rounded-[2rem] bg-rose-50 text-lg font-bold outline-none text-center">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-rose-50 p-4 rounded-3xl text-center border-2 border-transparent" id="qtdInputBox">
+                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Estoque</label>
+                        <input type="number" id="meadaQtd" value="1" class="w-full bg-transparent text-center text-4xl font-black outline-none">
+                    </div>
+                    <div class="bg-rose-50 p-4 rounded-3xl text-center">
+                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Mínimo</label>
+                        <input type="number" id="meadaMin" value="1" class="w-full bg-transparent text-center text-4xl font-black outline-none">
+                    </div>
+                </div>
+                
+                <button onclick="saveMeada()" class="w-full py-6 bg-[#F4ACB7] text-white rounded-[2.5rem] text-xl font-black shadow-lg btn-action">Salvar Meada</button>
+                <button onclick="closeModal()" class="w-full py-3 text-[10px] font-black opacity-20 uppercase tracking-[0.3em]">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIGURAR MÍNIMO GERAL -->
+    <div id="modalMinGeral" class="fixed inset-0 modal-overlay z-[200] hidden flex items-center justify-center p-6 text-center">
+        <div class="bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-2xl animate-pop">
+            <div class="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6 text-pink-400">
+                <i data-lucide="settings" class="w-8 h-8"></i>
+            </div>
+            <h2 class="text-2xl font-serif text-[#8E5D67] mb-4">Limite de Estoque</h2>
+            <p class="text-[11px] opacity-50 mb-8 leading-relaxed px-4 text-justify">
+                <b>Regra Preventiva:</b> Ao definir o valor mínimo, o app avisa para comprar assim que sobrar apenas essa quantidade na sua caixa física.
+            </p>
+            <div class="bg-rose-50 p-6 rounded-3xl mb-8">
+                <input type="number" id="globalMinVal" value="1" class="w-full bg-transparent text-center text-5xl font-black outline-none text-[#F4ACB7]">
+            </div>
+            <div class="flex flex-col gap-3">
+                <button onclick="confirmMinGeral()" class="w-full py-5 bg-[#F4ACB7] text-white rounded-full font-black text-lg btn-action shadow-lg">Atualizar Todas</button>
+                <button onclick="closeMinGeral()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase tracking-widest text-center">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FINALIZAR COMPRA -->
+    <div id="modalBuy" class="fixed inset-0 modal-overlay z-[200] hidden flex items-center justify-center p-8 text-center">
+        <div class="bg-white w-full max-w-xs rounded-[3.5rem] p-10 shadow-2xl animate-pop">
+            <h3 class="text-xl font-black text-[#8E5D67] mb-2 leading-tight">Quantas você comprou?</h3>
+            <p id="buyInfo" class="text-[11px] opacity-40 mb-6"></p>
+            <input type="number" id="buyQuantity" value="1" class="w-full p-6 bg-rose-50 rounded-3xl text-center text-5xl font-black outline-none mb-8 text-[#F4ACB7]">
+            <div class="flex flex-col gap-3">
+                <button id="confirmBuyBtn" class="w-full py-5 bg-[#F4ACB7] text-white rounded-full font-black text-lg btn-action shadow-lg">Confirmar</button>
+                <button onclick="closeBuyModal()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase tracking-widest text-center">Agora não</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO GLOBAL -->
+    <div id="modalConfirm" class="fixed inset-0 modal-overlay z-[300] hidden flex items-center justify-center p-8 text-center">
+        <div class="bg-white w-full max-w-xs rounded-[3rem] p-10 shadow-2xl animate-pop">
+            <div id="confirmIcon" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"></div>
+            <h3 id="confirmTitle" class="text-xl font-black text-[#8E5D67] mb-4">Confirmar?</h3>
+            <p id="confirmDesc" class="text-[11px] opacity-40 mb-8 leading-relaxed"></p>
+            <div class="flex flex-col gap-3">
+                <button id="confirmBtn" class="w-full py-4 bg-red-400 text-white rounded-full font-black btn-action shadow-lg">Sim, Confirmar</button>
+                <button onclick="closeConfirm()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase tracking-widest text-center">Não, Manter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR COR DO CATÁLOGO -->
+    <div id="modalEditColor" class="fixed inset-0 modal-overlay z-[200] hidden flex items-center justify-center p-6 text-center">
+        <div class="bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-2xl animate-pop">
+            <h2 id="editColorTitle" class="text-3xl font-serif text-[#8E5D67] mb-6">Ajustar Tom</h2>
+            <div class="flex flex-col items-center gap-6">
+                <input type="color" id="editColorPicker" class="w-40 h-40 rounded-full border-[10px] border-white shadow-2xl cursor-pointer">
+                <p class="text-[10px] font-black opacity-30 uppercase tracking-widest leading-relaxed px-4">Toque no círculo para escolher o tom exato da sua linha física</p>
+                <div class="w-full space-y-3">
+                    <button id="saveEditColorBtn" class="w-full py-5 bg-[#F4ACB7] text-white rounded-full font-black text-lg btn-action shadow-lg">Confirmar Tom</button>
+                    <button onclick="closeEditColorModal()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase text-center">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-[#8E5D67] text-white rounded-full font-black shadow-2xl opacity-0 transition-all z-[400] pointer-events-none text-[10px] uppercase tracking-widest text-center"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCmobt2CzDNEiWB2yUA1E3q1I8cbhGg45s",
+            authDomain: "cindy-artes-meadas.firebaseapp.com",
+            projectId: "cindy-artes-meadas",
+            storageBucket: "cindy-artes-meadas.firebasestorage.app",
+            messagingSenderId: "491478420377",
+            appId: "1:491478420377:web:3f0eb0f2feaf1e6665e108"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const meadasCol = collection(db, "meadas");
+        const catalogoCol = collection(db, "catalogo");
+
+        // --- BANCO DE DADOS ATUALIZADO (Até 09159) ---
+        const anchorOficial = {
+            "00001": { n: "Branco", c: "#FFFFFF" }, "00002": { n: "Branco Antigo", c: "#FDF5E6" },
+            "00006": { n: "Rosa Salmão M. Claro", c: "#FFF5F0" }, "00008": { n: "Rosa Salmão Claro", c: "#FFE4E1" },
+            "00009": { n: "Rosa Salmão Médio", c: "#FFD1C1" }, "00010": { n: "Rosa Salmão Escuro", c: "#FFA07A" },
+            "00011": { n: "Rosa Salmão M. Escuro", c: "#FA8072" }, "00013": { n: "Vermelho Salmão Escuro", c: "#E9967A" },
+            "00019": { n: "Rosa Choque Médio", c: "#FF69B4" }, "00020": { n: "Rosa Choque Escuro", c: "#FF1493" },
+            "00022": { n: "Grená Muito Escuro", c: "#800000" }, "00023": { n: "Amarelo Palha", c: "#FFFACD" },
+            "00024": { n: "Amarelo Claro", c: "#FFF9BB" }, "00025": { n: "Amarelo Canário Médio", c: "#FFEF00" },
+            "00026": { n: "Amarelo Canário Escuro", c: "#FFD700" }, "00027": { n: "Amarelo Ouro Claro", c: "#FFCC00" },
+            "00028": { n: "Amarelo Ouro Médio", c: "#FFBF00" }, "00029": { n: "Amarelo Ouro Escuro", c: "#FF9900" },
+            "00031": { n: "Tangerina Claro", c: "#FFCC99" }, "00033": { n: "Tangerina Médio", c: "#FF9933" },
+            "00035": { n: "Tangerina Escuro", c: "#FF6600" }, "00036": { n: "Rosa Bebê Claro", c: "#FFD1DC" },
+            "00038": { n: "Rosa Bebê Médio", c: "#FFB7C5" }, "00039": { n: "Rosa Bebê Escuro", c: "#FF91A4" },
+            "00040": { n: "Rosa Chiclete Claro", c: "#F48FB1" }, "00041": { n: "Rosa Chiclete Médio", c: "#F06292" },
+            "00042": { n: "Rosa Carmim Claro", c: "#E91E63" }, "00043": { n: "Rosa Carmim Médio", c: "#C2185B" },
+            "00044": { n: "Rosa Carmim Escuro", c: "#AD1457" }, "00045": { n: "Carmim Escuro", c: "#880E4F" },
+            "00046": { n: "Vermelho Carmim", c: "#D32F2F" }, "00047": { n: "Vermelho Carmim Escuro", c: "#B71C1C" },
+            "00048": { n: "Rosa Malva M. Claro", c: "#E1BEE7" }, "00049": { n: "Rosa Malva Claro", c: "#CE93D8" },
+            "00050": { n: "Rosa Malva Médio", c: "#BA68C8" }, "00052": { n: "Rosa Malva Escuro", c: "#9C27B0" },
+            "00054": { n: "Rosa Malva M. Escuro", c: "#8E24AA" }, "00055": { n: "Rosa Framboesa Claro", c: "#FF4081" },
+            "00057": { n: "Rosa Framboesa Médio", c: "#F50057" }, "00059": { n: "Rosa Framboesa Escuro", c: "#C51162" },
+            "00060": { n: "Rosa Antigo M. Claro", c: "#F8BBD0" }, "00062": { n: "Rosa Antigo Claro", c: "#F48FB1" },
+            "00063": { n: "Rosa Antigo Médio", c: "#F06292" }, "00065": { n: "Rosa Antigo Escuro", c: "#EC407A" },
+            "00066": { n: "Rosa Antigo M. Escuro", c: "#D81B60" }, "00068": { n: "Framboesa Muito Escuro", c: "#AD1457" },
+            "00069": { n: "Vinho Claro", c: "#880E4F" }, "00070": { n: "Vinho Médio", c: "#6A1B9A" },
+            "00072": { n: "Vinho Escuro", c: "#4A148C" }, "00073": { n: "Rosa Pálido", c: "#FCE4EC" },
+            "00074": { n: "Rosa Pálido Médio", c: "#F8BBD0" }, "00075": { n: "Rosa Pálido Escuro", c: "#F48FB1" },
+            "00076": { n: "Rosa Pálido M. Escuro", c: "#F06292" }, "00077": { n: "Rosa Pálido Fort.", c: "#EC407A" },
+            "00078": { n: "Rosa Pálido Profundo", c: "#E91E63" }, "00085": { n: "Orquídea Claro", c: "#E1BEE7" },
+            "00086": { n: "Orquídea Médio", c: "#CE93D8" }, "00087": { n: "Orquídea Escuro", c: "#BA55D3" },
+            "00088": { n: "Orquídea M. Escuro", c: "#9932CC" }, "00089": { n: "Orquídea Fortíssimo", c: "#9400D3" },
+            "00090": { n: "Magenta M. Claro", c: "#FF00FF" }, "00092": { n: "Magenta Claro", c: "#DA70D6" },
+            "00094": { n: "Magenta Médio", c: "#C71585" }, "00095": { n: "Violeta M. Claro", c: "#E6E6FA" },
+            "00096": { n: "Violeta Claro", c: "#D8BFD8" }, "00097": { n: "Violeta Médio", c: "#DDA0DD" },
+            "00098": { n: "Violeta Escuro", c: "#EE82EE" }, "00099": { n: "Violeta M. Escuro", c: "#8B008B" },
+            "00100": { n: "Violeta Azulado Claro", c: "#7B68EE" }, "00101": { n: "Violeta Azulado Médio", c: "#6A5ACD" },
+            "00102": { n: "Violeta Azulado Escuro", c: "#483D8B" }, "00103": { n: "Lavanda Claro", c: "#E6E6FA" },
+            "00105": { n: "Lavanda Escuro", c: "#9370DB" }, "00108": { n: "Lavanda M. Escuro", c: "#8A2BE2" },
+            "00109": { n: "Lavanda Profundo", c: "#4B0082" }, "00110": { n: "Lilás Claro", c: "#DDA0DD" },
+            "00111": { n: "Lilás Médio", c: "#DA70D6" }, "00112": { n: "Lilás Escuro", c: "#9932CC" },
+            "00117": { n: "Azul Cardo Claro", c: "#E6E6FA" }, "00118": { n: "Azul Cardo Médio", c: "#DCD0FF" },
+            "00119": { n: "Azul Cardo Escuro", c: "#B19CD9" }, "00120": { n: "Azul Ardosia Claro", c: "#778899" },
+            "00121": { n: "Azul Ardosia Médio", c: "#708090" }, "00122": { n: "Azul Ardosia Escuro", c: "#4682B4" },
+            "00123": { n: "Azul Ardosia M. Escuro", c: "#2F4F4F" }, "00127": { n: "Azul Petróleo M. Escuro", c: "#004953" },
+            "00128": { n: "Azul Cobalto Claro", c: "#B9D9EB" }, "00129": { n: "Azul Cobalto Médio", c: "#0047AB" },
+            "00130": { n: "Azul Cobalto Escuro", c: "#002366" }, "00131": { n: "Azul Cobalto M. Escuro", c: "#003399" },
+            "00132": { n: "Azul Cobalto Fort.", c: "#002FA7" }, "00133": { n: "Azul Royal Médio", c: "#4169E1" },
+            "00134": { n: "Azul Royal Escuro", c: "#002366" }, "00136": { n: "Azul Celeste Claro", c: "#ADD8E6" },
+            "00137": { n: "Azul Celeste Médio", c: "#87CEEB" }, "00139": { n: "Azul Celeste Escuro", c: "#00BFFF" },
+            "00140": { n: "Azul Celeste M. Escuro", c: "#1E90FF" }, "00142": { n: "Azul Marinho Claro", c: "#000080" },
+            "00143": { n: "Azul Marinho Médio", c: "#0000CD" }, "00144": { n: "Azul Turquesa M. Claro", c: "#E0FFFF" },
+            "00145": { n: "Azul Turquesa Claro", c: "#AFEEEE" }, "00146": { n: "Azul Turquesa Médio", c: "#40E0D0" },
+            "00147": { n: "Azul Turquesa Escuro", c: "#00CED1" }, "00148": { n: "Azul Turquesa M. Escuro", c: "#008B8B" },
+            "00149": { n: "Azul Oceano Médio", c: "#008080" }, "00150": { n: "Azul Oceano Escuro", c: "#004D4D" },
+            "00152": { n: "Azul Oceano M. Escuro", c: "#002B2B" }, "00158": { n: "Azul Safira M. Claro", c: "#F0F8FF" },
+            "00159": { n: "Azul Safira Claro", c: "#B0C4DE" }, "00160": { n: "Azul Safira Médio", c: "#6495ED" },
+            "00161": { n: "Azul Safira Escuro", c: "#4169E1" }, "00162": { n: "Azul Safira M. Escuro", c: "#00008B" },
+            "00164": { n: "Azul Safira Fortíssimo", c: "#000080" }, "00167": { n: "Azul Acinz. M. Claro", c: "#F5F5F5" },
+            "00168": { n: "Azul Acinz. Claro", c: "#D3D3D3" }, "00169": { n: "Azul Acinz. Médio", c: "#A9A9A9" },
+            "00170": { n: "Azul Acinz. Escuro", c: "#808080" }, "00175": { n: "Azul Gelo Claro", c: "#F0FFFF" },
+            "00176": { n: "Azul Gelo Médio", c: "#E0F7FA" }, "00177": { n: "Azul Gelo Escuro", c: "#B2EBF2" },
+            "00178": { n: "Azul Gelo M. Escuro", c: "#80DEEA" }, "00185": { n: "Verde Água M. Claro", c: "#E0F2F1" },
+            "00186": { n: "Verde Água Claro", c: "#B2DFDB" }, "00187": { n: "Verde Água Médio", c: "#80CBC4" },
+            "00188": { n: "Verde Água Escuro", c: "#4DB6AC" }, "00189": { n: "Verde Água M. Escuro", c: "#26A69A" },
+            "00203": { n: "Verde Esm. M. Claro", c: "#E8F5E9" }, "00204": { n: "Verde Esm. Claro", c: "#C8E6C9" },
+            "00205": { n: "Verde Esm. Médio", c: "#A5D6A7" }, "00206": { n: "Verde Lima Claro", c: "#F9FBE7" },
+            "00208": { n: "Verde Lima Médio", c: "#F0F4C3" }, "00209": { n: "Verde Lima Escuro", c: "#E6EE9C" },
+            "00210": { n: "Verde Grama Claro", c: "#DCEDC8" }, "00211": { n: "Verde Grama Médio", c: "#C5E1A5" },
+            "00212": { n: "Verde Grama Escuro", c: "#AED581" }, "00213": { n: "Verde Folha M. Claro", c: "#F1F8E9" },
+            "00214": { n: "Verde Folha Claro", c: "#DCEDC8" }, "00215": { n: "Verde Folha Médio", c: "#C5E1A5" },
+            "00216": { n: "Verde Folha Escuro", c: "#388E3C" }, "00217": { n: "Verde Folha M. Escuro", c: "#2E7D32" },
+            "00218": { n: "Verde Folha Fort.", c: "#1B5E20" }, "00225": { n: "Verde Amarelo M. Claro", c: "#F9FBE7" },
+            "00226": { n: "Verde Amarelo Claro", c: "#F0F4C3" }, "00227": { n: "Verde Amarelo Médio", c: "#E6EE9C" },
+            "00228": { n: "Verde Amarelo Escuro", c: "#DCE775" }, "00229": { n: "Verde Musgo M. Claro", c: "#F1F8E9" },
+            "00230": { n: "Verde Musgo Claro", c: "#DCEDC8" }, "00231": { n: "Verde Musgo Médio", c: "#C5E1A5" },
+            "00232": { n: "Verde Musgo Escuro", c: "#AED581" }, "00233": { n: "Verde Oliva M. Claro", c: "#F0F4C3" },
+            "00234": { n: "Verde Oliva Claro", c: "#E6EE9C" }, "00235": { n: "Verde Oliva Médio", c: "#DCE775" },
+            "00236": { n: "Verde Oliva Escuro", c: "#C0CA33" }, "00238": { n: "Verde Flor. Claro", c: "#81C784" },
+            "00239": { n: "Verde Flor. Médio", c: "#66BB6A" }, "00240": { n: "Verde Flor. Escuro", c: "#4CAF50" },
+            "00241": { n: "Verde Flor. M. Escuro", c: "#43A047" }, "00242": { n: "Verde Flor. Fort.", c: "#388E3C" },
+            "00243": { n: "Verde Bandeira Claro", c: "#4CAF50" }, "00244": { n: "Verde Bandeira Médio", c: "#388E3C" },
+            "00245": { n: "Verde Bandeira Escuro", c: "#2E7D32" }, "00246": { n: "Verde Bandeira M. Escuro", c: "#1B5E20" },
+            "00253": { n: "V. Musgo Amar. Claro", c: "#DCE775" }, "00254": { n: "V. Musgo Amar. Médio", c: "#CDDC39" },
+            "00255": { n: "V. Musgo Amar. Escuro", c: "#C0CA33" }, "00256": { n: "V. Musgo Amar. M. Escuro", c: "#AFB42B" },
+            "00257": { n: "V. Oliva Amar. Médio", c: "#CDDC39" }, "00258": { n: "V. Oliva Amar. Escuro", c: "#AFB42B" },
+            "00259": { n: "V. Oliva Acinz. Claro", c: "#CFD8DC" }, "00260": { n: "V. Oliva Acinz. Médio", c: "#B0BEC5" },
+            "00261": { n: "V. Oliva Acinz. Escuro", c: "#90A4AE" }, "00262": { n: "V. Oliva Acinz. M. Escuro", c: "#78909C" },
+            "00264": { n: "Verde Abacate Claro", c: "#DCEDC8" }, "00265": { n: "Verde Abacate Médio", c: "#C5E1A5" },
+            "00266": { n: "Verde Abacate Escuro", c: "#AED581" }, "00267": { n: "Verde Abacate M. Escuro", c: "#9CCC65" },
+            "00268": { n: "Verde Abacate Fort.", c: "#8BC34A" }, "00269": { n: "Verde Militar Profundo", c: "#556B2F" },
+            "00271": { n: "Palha Suave", c: "#FFF8E1" }, "00273": { n: "Amarelo Cevada", c: "#FFECB3" },
+            "00274": { n: "Ouro Suave", c: "#FFE082" }, "00275": { n: "Ouro Médio", c: "#FFD54F" },
+            "00277": { n: "Ouro Escuro", c: "#FFCA28" }, "00278": { n: "Castanho Amar. Claro", c: "#FFB300" },
+            "00279": { n: "Castanho Amar. Médio", c: "#FFA000" }, "00280": { n: "Castanho Amar. Escuro", c: "#FF8F00" },
+            "00281": { n: "Castanho Amar. M. Escuro", c: "#FF6F00" }, "00288": { n: "Amarelo Canário M. Claro", c: "#FFFDE7" },
+            "00289": { n: "Amarelo Canário Suave", c: "#FFF9C4" }, "00290": { n: "Amarelo Canário Médio", c: "#FFF59D" },
+            "00291": { n: "Amarelo Canário Forte", c: "#FFF176" }, "00292": { n: "Amarelo Sol", c: "#FFEE58" },
+            "00293": { n: "Amarelo Milho", c: "#FFEB3B" }, "00295": { n: "Amarelo Girassol", c: "#FDD835" },
+            "00297": { n: "Amarelo Cádmio", c: "#FBC02D" }, "00298": { n: "Amarelo Cádmio Escuro", c: "#F9A825" },
+            "00300": { n: "Amarelo Cítrico", c: "#F57F17" }, "00301": { n: "Amarelo Cítrico Médio", c: "#FFEB3B" },
+            "00302": { n: "Amarelo Cítrico Escuro", c: "#FBC02D" }, "00303": { n: "Amarelo Cítrico M. Escuro", c: "#F9A825" },
+            "00304": { n: "Amarelo Cítrico Fort.", c: "#F57F17" }, "00305": { n: "Amarelo Topázio Claro", c: "#FFFDE7" },
+            "00306": { n: "Amarelo Topázio Médio", c: "#FFF9C4" }, "00307": { n: "Amarelo Topázio Escuro", c: "#FFF59D" },
+            "00308": { n: "Amarelo Topázio M. Escuro", c: "#FFF176" }, "00309": { n: "Amarelo Topázio Fort.", c: "#FFEE58" },
+            "00310": { n: "Amarelo Topázio Profundo", c: "#FFEB3B" }, "00311": { n: "Amarelo Mandarina Claro", c: "#FFF8E1" },
+            "00313": { n: "Amarelo Mandarina Médio", c: "#FFECB3" }, "00314": { n: "Amarelo Mandarina Escuro", c: "#FFE082" },
+            "00316": { n: "Tangerina Fortíssimo", c: "#FF6F00" }, "00323": { n: "Damasco Claro", c: "#FFF3E0" },
+            "00324": { n: "Damasco Médio", c: "#FFE0B2" }, "00326": { n: "Damasco Escuro", c: "#FFCC80" },
+            "00328": { n: "Laranja Claro", c: "#FFB74D" }, "00329": { n: "Laranja Médio", c: "#FFA726" },
+            "00330": { n: "Laranja Escuro", c: "#FF9800" }, "00332": { n: "Laranja Abóbora", c: "#FB8C00" },
+            "00333": { n: "Laranja Abóbora Escuro", c: "#F57C00" }, "00334": { n: "Vermelho Alaranjado Claro", c: "#EF6C00" },
+            "00335": { n: "Vermelho Alaranjado Médio", c: "#E65100" }, "00336": { n: "Vermelho Alaranjado Escuro", c: "#FF3D00" },
+            "00337": { n: "Vermelho Terracota Claro", c: "#DD2C00" }, "00338": { n: "Vermelho Terracota Médio", c: "#BF360C" },
+            "00339": { n: "Vermelho Terracota Escuro", c: "#D84315" }, "00340": { n: "Vermelho Terracota M. Escuro", c: "#E64A19" },
+            "00341": { n: "Vermelho Terracota Fort.", c: "#F4511E" }, "00342": { n: "Bege Cinza M. Claro", c: "#EFEBE9" },
+            "00343": { n: "Bege Cinza Claro", c: "#D7CCC8" }, "00347": { n: "Salmão Pálido", c: "#FFCCBC" },
+            "00349": { n: "Salmão Pálido Médio", c: "#FFAB91" }, "00351": { n: "Salmão Pálido Escuro", c: "#FF8A65" },
+            "00352": { n: "Salmão Pálido M. Escuro", c: "#FF7043" }, "00355": { n: "Rosa Antigo Profundo", c: "#F4511E" },
+            "00357": { n: "Rosa Coral Claro", c: "#FFCCBC" }, "00358": { n: "Rosa Coral Médio", c: "#FFAB91" },
+            "00359": { n: "Rosa Coral Escuro", c: "#FF8A65" }, "00360": { n: "Vermelho Coral", c: "#FF7043" },
+            "00361": { n: "Rosa Carne M. Claro", c: "#EFEBE9" }, "00362": { n: "Rosa Carne Claro", c: "#D7CCC8" },
+            "00363": { n: "Rosa Carne Médio", c: "#BCAAA4" }, "00365": { n: "Rosa Carne Escuro", c: "#A1887F" },
+            "00366": { n: "Rosa Carne M. Escuro", c: "#8D6E63" }, "00367": { n: "Rosa Carne Fort.", c: "#795548" },
+            "00368": { n: "Terracota Suave", c: "#6D4C41" }, "00369": { n: "Terracota Médio", c: "#5D4037" },
+            "00370": { n: "Terracota Escuro", c: "#4E342E" }, "00371": { n: "Terracota M. Escuro", c: "#3E2723" },
+            "00372": { n: "Bege Deserto Claro", c: "#EFEBE9" }, "00373": { n: "Bege Deserto Médio", c: "#D7CCC8" },
+            "00374": { n: "Bege Deserto Escuro", c: "#BCAAA4" }, "00375": { n: "Bege Deserto M. Escuro", c: "#A1887F" },
+            "00376": { n: "Marrom Canela M. Claro", c: "#8D6E63" }, "00378": { n: "Marrom Canela Claro", c: "#795548" },
+            "00379": { n: "Marrom Canela Médio", c: "#6D4C41" }, "00380": { n: "Marrom Canela Escuro", c: "#5D4037" },
+            "00381": { n: "Marrom Canela M. Escuro", c: "#4E342E" }, "00382": { n: "Amarelo Creme", c: "#FFF8E1" },
+            "00386": { n: "Bege Avelã Claro", c: "#F5F5F5" }, "00387": { n: "Bege Avelã Médio", c: "#EEEEEE" },
+            "00388": { n: "Bege Avelã Escuro", c: "#E0E0E0" }, "00390": { n: "Marrom Avelã Claro", c: "#BDBDBD" },
+            "00391": { n: "Marrom Avelã Médio", c: "#9E9E9E" }, "00392": { n: "Marrom Avelã Escuro", c: "#757575" },
+            "00393": { n: "Marrom Avelã M. Escuro", c: "#616161" }, "00397": { n: "Cinza Prata M. Claro", c: "#ECEFF1" },
+            "00398": { n: "Cinza Prata Claro", c: "#CFD8DC" }, "00399": { n: "Cinza Prata Médio", c: "#B0BEC5" },
+            "00400": { n: "Cinza Prata Escuro", c: "#90A4AE" }, "00401": { n: "Cinza Prata M. Escuro", c: "#78909C" },
+            "00403": { n: "Preto", c: "#000000" }, "00410": { n: "Azul Hortênsia Médio", c: "#BBDEFB" },
+            "00433": { n: "Azul Hortênsia Escuro", c: "#90CAF9" }, "00661": { n: "Verde Oliva Profundo", c: "#827717" },
+            "00681": { n: "Verde Garrafa Médio", c: "#1B5E20" }, "00683": { n: "Verde Garrafa Escuro", c: "#004D40" },
+            "00778": { n: "Bege Rosado", c: "#F8BBD0" }, "00830": { n: "Verde Flor. Suave", c: "#4CAF50" },
+            "00832": { n: "Verde Flor. Profundo", c: "#388E3C" }, "00843": { n: "Verde Mar Escuro", c: "#00796B" },
+            "00844": { n: "Verde Mar M. Escuro", c: "#00695C" }, "00845": { n: "Verde Mar Profundo", c: "#004D40" },
+            "00846": { n: "Verde Mar Fort.", c: "#00312D" }, "00851": { n: "Azul Céu Médio", c: "#BBDEFB" },
+            "00860": { n: "Oliva Suave", c: "#9E9D24" }, "00862": { n: "Oliva Médio", c: "#827717" },
+            "00871": { n: "Taupe Médio", c: "#BCAAA4" }, "00873": { n: "Taupe Escuro", c: "#795548" },
+            "00874": { n: "Bege Areia Claro", c: "#EFEBE9" }, "00875": { n: "Bege Areia Médio", c: "#D7CCC8" },
+            "00877": { n: "Bege Areia Escuro", c: "#BCAAA4" }, "00878": { n: "Bege Areia M. Escuro", c: "#A1887F" },
+            "00879": { n: "Bege Areia Fort.", c: "#8D6E63" }, "00881": { n: "Marrom Cobre Claro", c: "#FFAB91" },
+            "00882": { n: "Marrom Cobre Médio", c: "#FF8A65" }, "00883": { n: "Marrom Cobre Escuro", c: "#FF7043" },
+            "00884": { n: "Marrom Cobre M. Escuro", c: "#F4511E" }, "00885": { n: "Cinza Acast. Claro", c: "#B0BEC5" },
+            "00887": { n: "Cinza Acast. Médio", c: "#90A4AE" }, "00888": { n: "Cinza Acast. Escuro", c: "#78909C" },
+            "00889": { n: "Cinza Acast. M. Escuro", c: "#546E7A" }, "00890": { n: "Rosa Choque Suave", c: "#F06292" },
+            "00891": { n: "Rosa Choque Médio", c: "#E91E63" }, "00893": { n: "Rosa Magenta Suave", c: "#D81B60" },
+            "00894": { n: "Rosa Magenta Médio", c: "#C2185B" }, "00895": { n: "Rosa Magenta Escuro", c: "#AD1457" },
+            "00896": { n: "Rosa Magenta M. Escuro", c: "#880E4F" }, "00897": { n: "Rosa Magenta Profundo", c: "#6A1B9A" },
+            "00898": { n: "Rosa Magenta Fort.", c: "#4A148C" }, "00900": { n: "Vermelho Carmesin Médio", c: "#E53935" },
+            "00901": { n: "Vermelho Carmesin Escuro", c: "#C62828" }, "00903": { n: "Vermelho Sangue Claro", c: "#B71C1C" },
+            "00905": { n: "Vermelho Sangue Médio", c: "#880E4F" }, "00906": { n: "Vermelho Sangue Escuro", c: "#6D1A1A" },
+            "00907": { n: "Vermelho Sangue M. Escuro", c: "#4E1212" }, "00923": { n: "Verde Amar. Suave", c: "#DCE775" },
+            "00924": { n: "Verde Amar. Médio", c: "#C0CA33" }, "00925": { n: "Verde Amar. Escuro", c: "#AFB42B" },
+            "00926": { n: "Verde Oliva Pálido", c: "#9E9D24" }, "00928": { n: "Verde Flor. Suave", c: "#827717" },
+            "00936": { n: "Verde Pinheiro", c: "#1B5E20" }, "00939": { n: "Azul Noturno Médio", c: "#1A237E" },
+            "00940": { n: "Azul Noturno Escuro", c: "#0D47A1" }, "00941": { n: "Azul Noturno M. Escuro", c: "#01579B" },
+            "00944": { n: "Amarelo Ocre Suave", c: "#FFC107" }, "00978": { n: "Azul Turquesa Suave", c: "#4DD0E1" },
+            "00979": { n: "Azul Turquesa Médio", c: "#00BCD4" }, "01001": { n: "Tijolo Muito Claro", c: "#D84315" },
+            "01002": { n: "Tijolo Claro", c: "#BF360C" }, "01003": { n: "Tijolo Médio", c: "#A33A25" },
+            "01004": { n: "Tijolo Escuro", c: "#842B1A" }, "01005": { n: "Marrom Avermelhado Médio", c: "#6A1B0A" },
+            "01006": { n: "Marrom Avermelhado Escuro", c: "#4A1407" }, "01009": { n: "Cobre Médio", c: "#B87333" },
+            "01011": { n: "Cobre Muito Escuro", c: "#8B4513" }, "01012": { n: "Marrom Terra Claro", c: "#A0522D" },
+            "01014": { n: "Marrom Terra Médio", c: "#8B4513" }, "01015": { n: "Marrom Terra Escuro", c: "#5D2906" },
+            "01016": { n: "Rosa Malva Pálido", c: "#F8BBD0" }, "01018": { n: "Rosa Malva Escuro", c: "#EC407A" },
+            "01020": { n: "Rosa Peônia Claro", c: "#F48FB1" }, "01021": { n: "Rosa Peônia Médio", c: "#F06292" },
+            "01022": { n: "Rosa Peônia Escuro", c: "#EC407A" }, "01023": { n: "Rosa Peônia M. Escuro", c: "#D81B60" },
+            "01024": { n: "Rosa Peônia Fortíssimo", c: "#C2185B" }, "01028": { n: "Framboesa Pálido", c: "#AD1457" },
+            "01029": { n: "Framboesa Médio", c: "#880E4F" }, "01031": { n: "Amarelo Antigo Claro", c: "#FFF9C4" },
+            "01033": { n: "Amarelo Antigo Médio", c: "#FFF59D" }, "01036": { n: "Amarelo Antigo Escuro", c: "#FFF176" },
+            "01038": { n: "Azul Celeste Pálido", c: "#E3F2FD" }, "01040": { n: "Azul Celeste Médio", c: "#BBDEFB" },
+            "01041": { n: "Azul Celeste Escuro", c: "#90CAF9" }, "01044": { n: "Azul Marinho Profundo", c: "#1A237E" },
+            "01047": { n: "Tangerina Pálido", c: "#FFECB3" }, "01048": { n: "Canela Pálido", c: "#D7CCC8" },
+            "01049": { n: "Canela Médio", c: "#BCAAA4" }, "01068": { n: "Verde Mar Pálido", c: "#E0F2F1" },
+            "01070": { n: "Verde Mar Médio", c: "#B2DFDB" }, "01072": { n: "Verde Mar Escuro", c: "#80CBC4" },
+            "01076": { n: "Verde Mar M. Escuro", c: "#4DB6AC" }, "01082": { n: "Terracota Pálido", c: "#FFCCBC" },
+            "01084": { n: "Terracota Médio", c: "#FF8A65" }, "01086": { n: "Terracota Escuro", c: "#E64A19" },
+            "01088": { n: "Terracota Muito Escuro", c: "#BF360C" }, "01089": { n: "Terracota Fort.", c: "#D84315" },
+            "01090": { n: "Vinho Pálido", c: "#F8BBD0" }, "01092": { n: "Verde Flor. Profundo", c: "#1B5E20" },
+            "01094": { n: "Violeta Pálido", c: "#E1BEE7" }, "01098": { n: "Violeta Escuro", c: "#4A148C" },
+            "01201": { n: "Vermelho Morango Claro", c: "#F44336" }, "01202": { n: "Vermelho Morango Médio", c: "#E91E63" },
+            "01203": { n: "Vermelho Morango Escuro", c: "#D81B60" }, "01204": { n: "Vermelho Morango M. Esc.", c: "#AD1457" },
+            "01206": { n: "Vermelho Morango Prof.", c: "#880E4F" }, "01207": { n: "Vermelho Morango Fort.", c: "#EC407A" },
+            "01209": { n: "Azul Jeans Claro", c: "#BBDEFB" },
+            // NOVAS CORES VERSÃO #21
+            "01210": { n: "Azul Jeans Médio", c: "#64B5F6" }, "01211": { n: "Azul Jeans Escuro", c: "#1E88E5" },
+            "01212": { n: "Azul Jeans M. Escuro", c: "#1565C0" }, "01213": { n: "Azul Jeans Fortíssimo", c: "#0D47A1" },
+            "01215": { n: "Amarelo Limão Claro", c: "#FFFDE7" }, "01216": { n: "Amarelo Limão Médio", c: "#FFF9C4" },
+            "01217": { n: "Amarelo Limão Escuro", c: "#FFF59D" }, "01218": { n: "Amarelo Limão M. Escuro", c: "#FFF176" },
+            "01220": { n: "Amarelo Limão Profundo", c: "#FFEE58" },
+            "02001": { n: "Variegado Azul/Verde", c: "linear-gradient(135deg, #2196F3, #4CAF50)" },
+            "02002": { n: "Variegado Rosa/Roxo", c: "linear-gradient(135deg, #E91E63, #9C27B0)" },
+            "09046": { n: "Vermelho Natal", c: "#D32F2F" }, "09159": { n: "Azul Céu Suave", c: "#E1F5FE" }
+        };
+
+        let currentTab = 'estoque';
+        let allMeadas = [];
+        let customCatalogo = [];
+        let editingId = null;
+        let pendingBuyId = null;
+        let pendingConfirmAction = null;
+        let toastTimeout = null;
+
+        const getEffectiveColor = (code) => {
+            const custom = customCatalogo.find(c => c.numero === code);
+            return custom ? custom.cor : (anchorOficial[code]?.c || '#F4ACB7');
+        };
+
+        window.formatSmartCode = (val) => {
+            const numbers = val.replace(/\D/g, '');
+            const formatted = numbers.padStart(5, '0');
+            document.getElementById('meadaNumeroDisplay').innerText = formatted;
+            const match = customCatalogo.find(c => c.numero === formatted) || anchorOficial[formatted];
+            if (match) {
+                document.getElementById('suggestName').innerText = match.n || match.nome;
+                const colorVal = getEffectiveColor(formatted);
+                document.getElementById('suggestColorPreview').style.background = colorVal;
+                document.getElementById('suggestionBox').classList.remove('hidden');
+                document.getElementById('applySuggest').onclick = () => {
+                    document.getElementById('meadaNome').value = match.n || match.nome;
+                    document.getElementById('suggestionBox').classList.add('hidden');
+                };
+            } else { document.getElementById('suggestionBox').classList.add('hidden'); }
+        };
+
+        window.switchTab = (tab) => {
+            currentTab = tab;
+            ['nav-estoque', 'nav-compras', 'nav-catalogo'].forEach(id => {
+                document.getElementById(id).classList.toggle('tab-active', id === `nav-${tab}`);
+            });
+            renderApp();
+        };
+
+        window.saveMeada = async () => {
+            const num = document.getElementById('meadaNumeroDisplay').innerText;
+            const nome = document.getElementById('meadaNome').value;
+            const data = {
+                numero: num, nome: nome,
+                quantidade: parseInt(document.getElementById('meadaQtd').value),
+                minimo: parseInt(document.getElementById('meadaMin').value),
+                hiddenFromShoppingList: false,
+                updatedAt: Date.now()
+            };
+            if (editingId) await updateDoc(doc(db, "meadas", editingId), data);
+            else await addDoc(meadasCol, data);
+            closeModal();
+            showToast("Guardado!");
+        };
+
+        window.openMinGeral = () => document.getElementById('modalMinGeral').classList.remove('hidden');
+        window.closeMinGeral = () => document.getElementById('modalMinGeral').classList.add('hidden');
+        window.confirmMinGeral = async () => {
+            const newMin = parseInt(document.getElementById('globalMinVal').value);
+            for (let m of allMeadas) {
+                await updateDoc(doc(db, "meadas", m.id), { minimo: newMin, hiddenFromShoppingList: false });
+            }
+            showToast(`Aviso de falta atualizado em todas!`);
+            closeMinGeral();
+        };
+
+        window.confirmRemoveFromCaixa = (id) => {
+            pendingConfirmAction = async () => {
+                await updateDoc(doc(db, "meadas", id), { quantidade: 0, hiddenFromShoppingList: false });
+                showToast("Linha retirada da caixa.");
+                closeConfirm();
+            };
+            document.getElementById('confirmTitle').innerText = "Retirar da Caixa?";
+            document.getElementById('confirmDesc').innerText = "O estoque ficará em zero e ela sairá da sua lista ativa.";
+            document.getElementById('confirmIcon').innerHTML = '<i data-lucide="package-minus" class="w-8 h-8"></i>';
+            document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-pink-50 text-pink-400";
+            document.getElementById('modalConfirm').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.confirmRemoveFromCompras = (id) => {
+            pendingConfirmAction = async () => {
+                await updateDoc(doc(db, "meadas", id), { hiddenFromShoppingList: true });
+                showToast("Removido da lista de compras.");
+                closeConfirm();
+            };
+            document.getElementById('confirmTitle').innerText = "Remover da lista?";
+            document.getElementById('confirmDesc').innerText = "Esta meada não aparecerá mais nas compras até que seu estoque mude novamente.";
+            document.getElementById('confirmIcon').innerHTML = '<i data-lucide="eye-off" class="w-8 h-8"></i>';
+            document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-orange-50 text-orange-400";
+            document.getElementById('modalConfirm').classList.remove('hidden');
+            lucide.createIcons();
+        };
+
+        window.closeConfirm = () => { document.getElementById('modalConfirm').classList.add('hidden'); pendingConfirmAction = null; };
+        document.getElementById('confirmBtn').onclick = () => { if (pendingConfirmAction) pendingConfirmAction(); };
+
+        window.openBuyModal = (id) => {
+            const m = allMeadas.find(x => x.id === id);
+            pendingBuyId = id;
+            document.getElementById('buyInfo').innerText = `#${m.numero} - ${m.nome}`;
+            document.getElementById('buyQuantity').value = 1;
+            document.getElementById('modalBuy').classList.remove('hidden');
+        };
+        window.closeBuyModal = () => document.getElementById('modalBuy').classList.add('hidden');
+        document.getElementById('confirmBuyBtn').onclick = async () => {
+            const bought = parseInt(document.getElementById('buyQuantity').value) || 0;
+            const m = allMeadas.find(x => x.id === pendingBuyId);
+            await updateDoc(doc(db, "meadas", pendingBuyId), { 
+                quantidade: m.quantidade + bought,
+                hiddenFromShoppingList: false // RESET OBRIGATÓRIO AO COMPRAR
+            });
+            closeBuyModal();
+            showToast("Estoque atualizado com sucesso!");
+        };
+
+        window.quickUpdate = async (id, delta) => {
+            const m = allMeadas.find(x => x.id === id);
+            const updateData = { quantidade: Math.max(0, m.quantidade + delta) };
+            if (delta < 0) updateData.hiddenFromShoppingList = false;
+            await updateDoc(doc(db, "meadas", id), updateData);
+        };
+
+        window.openEditColor = (code) => {
+            document.getElementById('editColorTitle').innerText = `#${code}`;
+            const currentCol = getEffectiveColor(code);
+            document.getElementById('editColorPicker').value = currentCol.startsWith('#') ? currentCol : '#F4ACB7';
+            document.getElementById('modalEditColor').classList.remove('hidden');
+            window.pendingEditColorCode = code;
+        };
+        window.closeEditColorModal = () => document.getElementById('modalEditColor').classList.add('hidden');
+        document.getElementById('saveEditColorBtn').onclick = async () => {
+            const newHex = document.getElementById('editColorPicker').value;
+            const existing = customCatalogo.find(c => c.numero === window.pendingEditColorCode);
+            const name = anchorOficial[window.pendingEditColorCode]?.n || "Cor Custom";
+            if (existing) await updateDoc(doc(db, "catalogo", existing.id), { cor: newHex });
+            else await addDoc(catalogoCol, { numero: window.pendingEditColorCode, nome: name, cor: newHex });
+            closeEditColorModal();
+            showToast("Tom atualizado!");
+        };
+
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast');
+            if(toastTimeout) clearTimeout(toastTimeout);
+            t.innerText = msg; t.style.opacity = "1";
+            toastTimeout = setTimeout(() => { t.style.opacity = "0"; }, 3000);
+        };
+
+        window.renderApp = () => {
+            const grid = document.getElementById('app-grid');
+            const search = document.getElementById('searchBar').value.toLowerCase();
+            
+            if (currentTab === 'catalogo') {
+                grid.className = "grid grid-cols-3 gap-4 animate-pop";
+                const list = [...Object.entries(anchorOficial).map(([num, d]) => ({numero: num, nome: d.n})), ...customCatalogo.map(c => ({numero: c.numero, nome: c.nome}))];
+                const unique = Array.from(new Set(list.map(a => a.numero))).map(num => list.find(a => a.numero === num)).sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
+                grid.innerHTML = unique.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search)).map(c => `
+                    <div class="catalog-grid-item" style="background: ${getEffectiveColor(c.numero)}" onclick="showToast('${c.nome}')">
+                        <button onclick="event.stopPropagation(); openEditColor('${c.numero}')" class="edit-side-btn btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                        <span class="catalog-code-badge">${c.numero}</span>
+                    </div>
+                `).join('');
+            } else {
+                grid.className = "grid gap-6 animate-pop";
+                let headerActions = "";
+                if(currentTab === 'estoque') {
+                    headerActions = `<button onclick="openMinGeral()" class="w-full p-4 rounded-3xl bg-pink-50 border border-pink-100 flex items-center justify-center gap-3 text-xs font-black uppercase text-pink-400 btn-action mb-2"><i data-lucide="settings" class="w-4 h-4"></i> Limites de Compra</button>`;
+                } else if(currentTab === 'compras') {
+                    headerActions = `<button onclick="openAddModal('compras')" class="w-full p-4 rounded-3xl bg-rose-100 border border-rose-200 flex items-center justify-center gap-3 text-xs font-black uppercase text-[#8E5D67] btn-action mb-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lista de Planejamento</button>`;
+                }
+
+                allMeadas.sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
+                let filtered = allMeadas.filter(m => m.numero.includes(search) || m.nome.toLowerCase().includes(search));
+                
+                if (currentTab === 'estoque') filtered = filtered.filter(m => m.quantidade > 0);
+                else if (currentTab === 'compras') {
+                    filtered = filtered.filter(m => (m.quantidade <= m.minimo && m.minimo > 0 && !m.hiddenFromShoppingList) || (m.quantidade === 0 && m.minimo === 0 && m.updatedAt && !m.hiddenFromShoppingList));
+                }
+
+                grid.innerHTML = headerActions + filtered.map(m => `
+                    <div class="glass-card rounded-[3rem] p-8 flex flex-col items-center relative overflow-hidden">
+                        <div class="spool-box mb-4" style="background: ${getEffectiveColor(m.numero)}"></div>
+                        <h2 class="text-5xl font-black text-[#8E5D67]">#${m.numero}</h2>
+                        <p class="text-base font-bold opacity-30 mb-6 italic text-center">${m.nome}</p>
+                        ${currentTab === 'compras' ? `
+                            <div class="w-full space-y-3">
+                                <button onclick="openBuyModal('${m.id}')" class="w-full py-5 bg-[#F4ACB7] text-white rounded-[2rem] font-black text-lg shadow-lg flex items-center justify-center gap-3 btn-action">Comprei!</button>
+                                <button onclick="confirmRemoveFromCompras('${m.id}')" class="w-full py-3 text-[10px] font-black opacity-30 uppercase tracking-widest text-center btn-action">Remover da Lista</button>
+                            </div>
+                        ` : `
+                            <div class="w-full flex items-center justify-between bg-rose-50/40 p-4 rounded-full border border-pink-50 mb-4">
+                                <button onclick="quickUpdate('${m.id}', -1)" class="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center text-3xl font-black btn-action">-</button>
+                                <div class="text-center"><span class="text-4xl font-black ${m.quantidade <= m.minimo ? 'text-red-400' : 'text-[#8E5D67]'}">${m.quantidade}</span></div>
+                                <button onclick="quickUpdate('${m.id}', 1)" class="w-14 h-14 rounded-full bg-[#F4ACB7] text-white shadow flex items-center justify-center text-3xl font-black btn-action">+</button>
+                            </div>
+                            <div class="flex gap-4">
+                                <button onclick="editMeada('${m.id}')" class="text-[9px] font-black opacity-30 uppercase flex items-center gap-2 btn-action">Editar</button>
+                                <button onclick="confirmRemoveFromCaixa('${m.id}')" class="text-[9px] font-black text-red-300 uppercase flex items-center gap-2 btn-action">Retirar</button>
+                            </div>
+                        `}
+                        ${m.quantidade <= m.minimo && currentTab === 'estoque' ? `<div class="absolute top-6 left-6 bg-red-400 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase">Falta</div>` : ''}
+                    </div>
+                `).join('');
+            }
+            lucide.createIcons();
+        };
+
+        onSnapshot(query(meadasCol), (s) => { allMeadas = s.docs.map(d => ({id: d.id, ...d.data()})); renderApp(); });
+        onSnapshot(query(catalogoCol), (s) => { customCatalogo = s.docs.map(d => ({id: d.id, ...d.data()})); renderApp(); });
+        window.openAddModal = (source) => { editingId = null; document.getElementById('modalAdd').classList.remove('hidden'); document.getElementById('meadaNumeroDisplay').innerText = "00000"; if(source === 'compras') { document.getElementById('meadaQtd').value = 0; document.getElementById('meadaMin').value = 1; document.getElementById('qtdInputBox').style.borderColor = "#F8C8DC"; } else { document.getElementById('meadaQtd').value = 1; document.getElementById('meadaMin').value = 1; document.getElementById('qtdInputBox').style.borderColor = "transparent"; } };
+        window.closeModal = () => document.getElementById('modalAdd').classList.add('hidden');
+        window.editMeada = (id) => { const m = allMeadas.find(x => x.id === id); editingId = id; document.getElementById('meadaNumeroDisplay').innerText = m.numero; document.getElementById('meadaNome').value = m.nome; document.getElementById('meadaQtd').value = m.quantidade; document.getElementById('meadaMin').value = m.minimo; document.getElementById('modalAdd').classList.remove('hidden'); };
+        lucide.createIcons(); switchTab('estoque');
+    </script>
+</body>
+</html>
+
+```
