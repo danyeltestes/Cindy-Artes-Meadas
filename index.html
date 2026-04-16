@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CA - Cindy Artes</title>
+    <title>CA - Cindy Artes v3.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -57,6 +57,18 @@
             border-radius: 99px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             color: var(--rose-primary);
+            z-index: 10;
+        }
+
+        .delete-side-btn {
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            background: rgba(255,255,255,0.9);
+            padding: 6px;
+            border-radius: 99px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            color: #ef4444;
             z-index: 10;
         }
 
@@ -118,6 +130,26 @@
         .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
         #toast { transition: opacity 0.8s ease-out, transform 0.4s ease; }
+
+        .section-divider {
+            border-top: 1px dashed rgba(244, 172, 183, 0.4);
+            margin: 2rem 0 1rem 0;
+            padding-top: 1rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .exception-card {
+            background: white;
+            border-radius: 2rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+            border: 1px solid rgba(244, 172, 183, 0.1);
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -128,12 +160,13 @@
         <header class="pt-12 pb-6 px-8 text-center relative">
             <h1 class="text-7xl font-serif text-[#D68C96] italic leading-none tracking-tighter">CA</h1>
             <p class="text-[9px] font-black uppercase tracking-[0.4em] opacity-40 mt-3">Cindy Artes Meadas</p>
-            <p class="text-[7px] font-bold opacity-20 mt-1 uppercase tracking-widest">Versão CAM.16.04#2 • Maintenance</p>
+            <!-- VERSÃO ATUALIZADA 3.4 -->
+            <p class="text-[7px] font-bold opacity-30 mt-1 uppercase tracking-widest bg-pink-50/50 py-1 px-3 rounded-full inline-block">Versão CAM.16.04#3.4 • Painel de Controle de Personalização</p>
         </header>
 
         <!-- NAVEGAÇÃO SUPERIOR -->
         <nav class="sticky top-4 z-50 flex justify-center gap-2 px-6 mb-6">
-            <button onclick="switchTab('estoque')" id="nav-estoque" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action tab-active">Caixa</button>
+            <button onclick="switchTab('estoque')" id="nav-estoque" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action tab-active">Estoque</button>
             <button onclick="switchTab('compras')" id="nav-compras" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action">Comprar</button>
             <button onclick="switchTab('catalogo')" id="nav-catalogo" class="flex-1 py-4 rounded-2xl font-black glass-card text-[9px] uppercase tracking-widest btn-action">Cores</button>
         </nav>
@@ -154,7 +187,7 @@
 
         <!-- BOTÕES FLUTUANTES -->
         <div class="fixed bottom-10 right-6 z-[60] flex flex-col gap-4">
-            <button id="main-plus-btn" onclick="openAddModal()" class="w-16 h-16 rounded-full bg-[#F4ACB7] text-white shadow-xl flex items-center justify-center btn-action shadow-pink-100">
+            <button id="main-plus-btn" onclick="openAddModal('estoque')" class="w-16 h-16 rounded-full bg-[#F4ACB7] text-white shadow-xl flex items-center justify-center btn-action shadow-pink-100">
                 <i data-lucide="plus" class="w-10 h-10"></i>
             </button>
         </div>
@@ -165,10 +198,9 @@
         <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl animate-pop overflow-y-auto max-h-[85vh]">
             <h2 id="modalTitle" class="text-3xl font-serif text-[#8E5D67] mb-8 text-center">Nova Meada</h2>
             
-            <!-- Aviso de Duplicidade -->
             <div id="duplicateWarning" class="hidden mb-6 p-4 bg-orange-50 border border-orange-100 rounded-2xl flex items-center gap-3">
-                <i data-lucide="alert-circle" class="w-5 h-5 text-orange-400"></i>
-                <p class="text-[10px] font-bold text-orange-600 leading-tight">Atenção: Esta cor já está na sua caixa!</p>
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-400"></i>
+                <p id="duplicateWarningText" class="text-[10px] font-bold text-orange-600 leading-tight">Este código já está na sua lista!</p>
             </div>
 
             <div class="space-y-6">
@@ -189,7 +221,6 @@
                     </div>
                 </div>
 
-                <!-- Seleção Outra Marca -->
                 <div class="flex items-center justify-center gap-3 bg-rose-50/50 p-4 rounded-3xl">
                     <input type="checkbox" id="meadaOutraMarca" onchange="checkDuplicate()" class="w-5 h-5 rounded border-rose-200 text-[#F4ACB7] focus:ring-[#F4ACB7]">
                     <label for="meadaOutraMarca" class="text-[10px] font-black uppercase tracking-widest text-[#8E5D67]">De outra marca</label>
@@ -200,39 +231,15 @@
                     <input type="text" id="meadaNome" class="w-full p-4 rounded-[2rem] bg-rose-50 text-lg font-bold outline-none text-center">
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-rose-50 p-4 rounded-3xl text-center border-2 border-transparent" id="qtdInputBox">
-                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Estoque</label>
-                        <input type="number" id="meadaQtd" value="1" class="w-full bg-transparent text-center text-4xl font-black outline-none">
-                    </div>
-                    <div class="bg-rose-50 p-4 rounded-3xl text-center">
-                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Mínimo</label>
-                        <input type="number" id="meadaMin" value="1" class="w-full bg-transparent text-center text-4xl font-black outline-none">
+                <div class="flex flex-col gap-4">
+                    <div class="bg-rose-50 p-6 rounded-[2.5rem] text-center" id="qtdInputBox">
+                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Quantidade em Estoque</label>
+                        <input type="number" id="meadaQtd" value="1" class="w-full bg-transparent text-center text-5xl font-black outline-none text-[#D68C96]">
                     </div>
                 </div>
                 
-                <button onclick="saveMeada()" class="w-full py-6 bg-[#F4ACB7] text-white rounded-[2.5rem] text-xl font-black shadow-lg btn-action">Salvar Meada</button>
+                <button id="btnSaveMeada" onclick="saveMeada()" class="w-full py-6 bg-[#F4ACB7] text-white rounded-[2.5rem] text-xl font-black shadow-lg btn-action">Salvar Meada</button>
                 <button onclick="closeModal()" class="w-full py-3 text-[10px] font-black opacity-20 uppercase tracking-[0.3em]">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIGURAR MÍNIMO GERAL -->
-    <div id="modalMinGeral" class="fixed inset-0 modal-overlay z-[200] hidden flex items-center justify-center p-6 text-center">
-        <div class="bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-2xl animate-pop">
-            <div class="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-6 text-pink-400">
-                <i data-lucide="settings" class="w-8 h-8"></i>
-            </div>
-            <h2 class="text-2xl font-serif text-[#8E5D67] mb-4">Limite de Estoque</h2>
-            <p class="text-[11px] opacity-50 mb-8 leading-relaxed px-4 text-justify">
-                <b>Regra Preventiva:</b> Ao definir o valor mínimo, o app avisa para comprar assim que sobrar apenas essa quantidade na sua caixa física.
-            </p>
-            <div class="bg-rose-50 p-6 rounded-3xl mb-8">
-                <input type="number" id="globalMinVal" value="1" class="w-full bg-transparent text-center text-5xl font-black outline-none text-[#F4ACB7]">
-            </div>
-            <div class="flex flex-col gap-3">
-                <button onclick="confirmMinGeral()" class="w-full py-5 bg-[#F4ACB7] text-white rounded-full font-black text-lg btn-action shadow-lg">Atualizar Todas</button>
-                <button onclick="closeMinGeral()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase tracking-widest text-center">Fechar</button>
             </div>
         </div>
     </div>
@@ -299,7 +306,7 @@
         const meadasCol = collection(db, "meadas");
         const catalogoCol = collection(db, "catalogo");
 
-        // --- BANCO DE DADOS ATUALIZADO (Até 09159) ---
+        // --- BANCO DE DADOS ANCHOR (FALLBACK) ---
         const anchorOficial = {
             "00001": { n: "Branco", c: "#FFFFFF" }, "00002": { n: "Branco Antigo", c: "#FDF5E6" },
             "00006": { n: "Rosa Salmão M. Claro", c: "#FFF5F0" }, "00008": { n: "Rosa Salmão Claro", c: "#FFE4E1" },
@@ -490,7 +497,6 @@
             "01203": { n: "Vermelho Morango Escuro", c: "#D81B60" }, "01204": { n: "Vermelho Morango M. Esc.", c: "#AD1457" },
             "01206": { n: "Vermelho Morango Prof.", c: "#880E4F" }, "01207": { n: "Vermelho Morango Fort.", c: "#EC407A" },
             "01209": { n: "Azul Jeans Claro", c: "#BBDEFB" },
-            // NOVAS CORES VERSÃO #21
             "01210": { n: "Azul Jeans Médio", c: "#64B5F6" }, "01211": { n: "Azul Jeans Escuro", c: "#1E88E5" },
             "01212": { n: "Azul Jeans M. Escuro", c: "#1565C0" }, "01213": { n: "Azul Jeans Fortíssimo", c: "#0D47A1" },
             "01215": { n: "Amarelo Limão Claro", c: "#FFFDE7" }, "01216": { n: "Amarelo Limão Médio", c: "#FFF9C4" },
@@ -511,34 +517,64 @@
 
         const getEffectiveColor = (code) => {
             const custom = customCatalogo.find(c => c.numero === code);
-            return custom ? custom.cor : (anchorOficial[code]?.c || '#F4ACB7');
+            if (custom && custom.cor) return custom.cor;
+            return (anchorOficial[code]?.c || '#F4ACB7');
         };
 
         window.checkDuplicate = () => {
             const num = document.getElementById('meadaNumeroDisplay').innerText;
             const isOutraMarca = document.getElementById('meadaOutraMarca').checked;
             const warn = document.getElementById('duplicateWarning');
+            const warnText = document.getElementById('duplicateWarningText');
+            const btnSave = document.getElementById('btnSaveMeada');
 
-            if (editingId) { warn.classList.add('hidden'); return; }
+            if (editingId) { 
+                warn.classList.add('hidden'); 
+                btnSave.disabled = false;
+                btnSave.classList.remove('opacity-50');
+                return; 
+            }
 
-            const exists = allMeadas.find(m => m.numero === num && m.outraMarca === isOutraMarca && m.quantidade > 0);
-            if (exists) warn.classList.remove('hidden');
-            else warn.classList.add('hidden');
+            const match = allMeadas.find(m => m.numero === num && m.outraMarca === isOutraMarca);
+
+            if (match) {
+                if (match.quantidade > 0) {
+                    warn.classList.remove('hidden');
+                    warnText.innerText = "Atenção: Esta cor já está no seu estoque!";
+                    btnSave.disabled = true;
+                    btnSave.classList.add('opacity-50');
+                } else if (!match.hiddenFromShoppingList) {
+                    warn.classList.remove('hidden');
+                    warnText.innerText = "Erro: Já está na lista de compras!";
+                    btnSave.disabled = true;
+                    btnSave.classList.add('opacity-50');
+                } else {
+                    warn.classList.add('hidden');
+                    btnSave.disabled = false;
+                    btnSave.classList.remove('opacity-50');
+                }
+            } else {
+                warn.classList.add('hidden');
+                btnSave.disabled = false;
+                btnSave.classList.remove('opacity-50');
+            }
         };
 
         window.formatSmartCode = (val) => {
-            const numbers = val.replace(/\D/g, '');
+            const numbers = val.replace(/\D/g, '').substring(0, 5);
             const formatted = numbers.padStart(5, '0');
             document.getElementById('meadaNumeroDisplay').innerText = formatted;
             
-            const match = customCatalogo.find(c => c.numero === formatted) || anchorOficial[formatted];
-            if (match) {
-                document.getElementById('suggestName').innerText = match.n || match.nome;
-                const colorVal = getEffectiveColor(formatted);
-                document.getElementById('suggestColorPreview').style.background = colorVal;
+            const custom = customCatalogo.find(c => c.numero === formatted);
+            const oficial = anchorOficial[formatted];
+            
+            if (custom || oficial) {
+                const info = custom || oficial;
+                document.getElementById('suggestName').innerText = info.n || info.nome;
+                document.getElementById('suggestColorPreview').style.background = getEffectiveColor(formatted);
                 document.getElementById('suggestionBox').classList.remove('hidden');
                 document.getElementById('applySuggest').onclick = () => {
-                    document.getElementById('meadaNome').value = match.n || match.nome;
+                    document.getElementById('meadaNome').value = info.n || info.nome;
                     document.getElementById('suggestionBox').classList.add('hidden');
                 };
             } else { document.getElementById('suggestionBox').classList.add('hidden'); }
@@ -549,12 +585,15 @@
         window.switchTab = (tab) => {
             currentTab = tab;
             ['nav-estoque', 'nav-compras', 'nav-catalogo'].forEach(id => {
-                document.getElementById(id).classList.toggle('tab-active', id === `nav-${tab}`);
+                const el = document.getElementById(id);
+                if(el) el.classList.toggle('tab-active', id === `nav-${tab}`);
             });
             
             const plusBtn = document.getElementById('main-plus-btn');
-            if(tab === 'estoque') plusBtn.classList.remove('hidden');
-            else plusBtn.classList.add('hidden');
+            if(plusBtn) {
+                if(tab === 'estoque') plusBtn.classList.remove('hidden');
+                else plusBtn.classList.add('hidden');
+            }
 
             renderApp();
         };
@@ -563,46 +602,43 @@
             const num = document.getElementById('meadaNumeroDisplay').innerText;
             const nome = document.getElementById('meadaNome').value;
             const outraMarca = document.getElementById('meadaOutraMarca').checked;
+            const qtd = parseInt(document.getElementById('meadaQtd').value);
 
-            if (!editingId && allMeadas.find(m => m.numero === num && m.outraMarca === outraMarca && m.quantidade > 0)) {
-                showToast("Erro: Já existe na sua caixa!");
-                return;
+            if (!editingId) {
+                const dup = allMeadas.find(m => m.numero === num && m.outraMarca === outraMarca);
+                if (dup && (dup.quantidade > 0 || !dup.hiddenFromShoppingList)) {
+                    showToast("Erro: Código Duplicado!");
+                    return;
+                }
             }
 
             const data = {
                 numero: num, 
                 nome: nome,
                 outraMarca: outraMarca,
-                quantidade: parseInt(document.getElementById('meadaQtd').value),
-                minimo: parseInt(document.getElementById('meadaMin').value),
+                quantidade: isNaN(qtd) ? 0 : qtd,
                 hiddenFromShoppingList: false,
                 updatedAt: Date.now()
             };
-            if (editingId) await updateDoc(doc(db, "meadas", editingId), data);
-            else await addDoc(meadasCol, data);
-            closeModal();
-            showToast("Guardado!");
-        };
 
-        window.openMinGeral = () => document.getElementById('modalMinGeral').classList.remove('hidden');
-        window.closeMinGeral = () => document.getElementById('modalMinGeral').classList.add('hidden');
-        window.confirmMinGeral = async () => {
-            const newMin = parseInt(document.getElementById('globalMinVal').value);
-            for (let m of allMeadas) {
-                await updateDoc(doc(db, "meadas", m.id), { minimo: newMin, hiddenFromShoppingList: false });
+            try {
+                if (editingId) await updateDoc(doc(db, "meadas", editingId), data);
+                else await addDoc(meadasCol, data);
+                closeModal();
+                showToast("Sucesso!");
+            } catch (e) {
+                showToast("Erro ao salvar.");
             }
-            showToast(`Aviso de falta atualizado em todas!`);
-            closeMinGeral();
         };
 
         window.confirmRemoveFromCaixa = (id) => {
             pendingConfirmAction = async () => {
                 await updateDoc(doc(db, "meadas", id), { quantidade: 0, hiddenFromShoppingList: true });
-                showToast("Linha retirada da caixa.");
+                showToast("Linha retirada do estoque.");
                 closeConfirm();
             };
-            document.getElementById('confirmTitle').innerText = "Retirar da Caixa?";
-            document.getElementById('confirmDesc').innerText = "O estoque ficará em zero e ela sairá da sua lista ativa.";
+            document.getElementById('confirmTitle').innerText = "Retirar do Estoque?";
+            document.getElementById('confirmDesc').innerText = "O contador ficará em zero e ela sairá da sua lista ativa.";
             document.getElementById('confirmIcon').innerHTML = '<i data-lucide="package-minus" class="w-8 h-8"></i>';
             document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-pink-50 text-pink-400";
             document.getElementById('modalConfirm').classList.remove('hidden');
@@ -612,11 +648,11 @@
         window.confirmRemoveFromCompras = (id) => {
             pendingConfirmAction = async () => {
                 await updateDoc(doc(db, "meadas", id), { hiddenFromShoppingList: true });
-                showToast("Removido da lista de compras.");
+                showToast("Removido da lista.");
                 closeConfirm();
             };
             document.getElementById('confirmTitle').innerText = "Remover da lista?";
-            document.getElementById('confirmDesc').innerText = "Esta meada não aparecerá mais nas compras até que seu estoque mude novamente.";
+            document.getElementById('confirmDesc').innerText = "Esta meada não aparecerá mais nas compras até que você a adicione novamente.";
             document.getElementById('confirmIcon').innerHTML = '<i data-lucide="eye-off" class="w-8 h-8"></i>';
             document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-orange-50 text-orange-400";
             document.getElementById('modalConfirm').classList.remove('hidden');
@@ -628,25 +664,30 @@
 
         window.openBuyModal = (id) => {
             const m = allMeadas.find(x => x.id === id);
+            if (!m) return;
             pendingBuyId = id;
             document.getElementById('buyInfo').innerText = `#${m.numero} - ${m.nome}`;
             document.getElementById('buyQuantity').value = 1;
             document.getElementById('modalBuy').classList.remove('hidden');
         };
+
         window.closeBuyModal = () => document.getElementById('modalBuy').classList.add('hidden');
+        
         document.getElementById('confirmBuyBtn').onclick = async () => {
             const bought = parseInt(document.getElementById('buyQuantity').value) || 0;
             const m = allMeadas.find(x => x.id === pendingBuyId);
+            if (!m) return;
             await updateDoc(doc(db, "meadas", pendingBuyId), { 
                 quantidade: m.quantidade + bought,
                 hiddenFromShoppingList: false 
             });
             closeBuyModal();
-            showToast("Estoque atualizado com sucesso!");
+            showToast("Estoque atualizado!");
         };
 
         window.quickUpdate = async (id, delta) => {
             const m = allMeadas.find(x => x.id === id);
+            if (!m) return;
             const updateData = { quantidade: Math.max(0, m.quantidade + delta) };
             if (delta < 0) updateData.hiddenFromShoppingList = false;
             await updateDoc(doc(db, "meadas", id), updateData);
@@ -661,7 +702,6 @@
         };
         window.closeEditColorModal = () => document.getElementById('modalEditColor').classList.add('hidden');
         
-        // CORREÇÃO DO REQUISITO 2: Função de salvar tom sincronizada
         document.getElementById('saveEditColorBtn').onclick = async () => {
             const newHex = document.getElementById('editColorPicker').value;
             const code = window.pendingEditColorCode;
@@ -675,11 +715,28 @@
                     await addDoc(catalogoCol, { numero: code, nome: name, cor: newHex });
                 }
                 closeEditColorModal();
-                showToast("Tom atualizado!");
-                // O renderApp será chamado automaticamente pelo onSnapshot do catálogo
+                showToast("Tom atualizado em todo o app!");
             } catch (e) {
                 showToast("Erro ao salvar tom.");
             }
+        };
+
+        /**
+         * FUNÇÃO EXCLUIR CORREÇÃO (NOVIDADE 3.4)
+         * Remove o registro de exceção do banco de dados.
+         */
+        window.confirmDeleteCustomColor = (id, code) => {
+            pendingConfirmAction = async () => {
+                await deleteDoc(doc(db, "catalogo", id));
+                showToast("Tom restaurado para o original!");
+                closeConfirm();
+            };
+            document.getElementById('confirmTitle').innerText = "Excluir Correção?";
+            document.getElementById('confirmDesc').innerText = `A meada #${code} voltará a exibir a cor padrão de fábrica.`;
+            document.getElementById('confirmIcon').innerHTML = '<i data-lucide="trash-2" class="w-8 h-8"></i>';
+            document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-50 text-red-400";
+            document.getElementById('modalConfirm').classList.remove('hidden');
+            lucide.createIcons();
         };
 
         window.showToast = (msg) => {
@@ -691,48 +748,90 @@
 
         window.renderApp = () => {
             const grid = document.getElementById('app-grid');
+            if(!grid) return;
             const search = document.getElementById('searchBar').value.toLowerCase();
             
             if (currentTab === 'catalogo') {
-                grid.className = "grid grid-cols-3 gap-4 animate-pop";
-                const list = [...Object.entries(anchorOficial).map(([num, d]) => ({numero: num, nome: d.n})), ...customCatalogo.map(c => ({numero: c.numero, nome: c.nome}))];
-                const unique = Array.from(new Set(list.map(a => a.numero))).map(num => list.find(a => a.numero === num)).sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
-                grid.innerHTML = unique.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search)).map(c => `
-                    <div class="catalog-grid-item" style="background: ${getEffectiveColor(c.numero)}" onclick="showToast('${c.nome}')">
-                        <button onclick="event.stopPropagation(); openEditColor('${c.numero}')" class="edit-side-btn btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                        <span class="catalog-code-badge">${c.numero}</span>
-                    </div>
-                `).join('');
-            } else {
-                grid.className = "grid gap-6 animate-pop";
-                let headerActions = "";
-                if(currentTab === 'estoque') {
-                    headerActions = `<button onclick="openMinGeral()" class="w-full p-4 rounded-3xl bg-pink-50 border border-pink-100 flex items-center justify-center gap-3 text-xs font-black uppercase text-pink-400 btn-action mb-2"><i data-lucide="settings" class="w-4 h-4"></i> Limites de Compra</button>`;
-                } else if(currentTab === 'compras') {
-                    headerActions = `<button onclick="openAddModal('compras')" class="w-full p-4 rounded-3xl bg-rose-100 border border-rose-200 flex items-center justify-center gap-3 text-xs font-black uppercase text-[#8E5D67] btn-action mb-2"><i data-lucide="plus-circle" class="w-4 h-4"></i> Lista de Planejamento</button>`;
+                grid.className = "px-6 grid gap-4 animate-pop";
+                grid.innerHTML = "";
+
+                // SEÇÃO: PAINEL DE CONTROLE DE PERSONALIZAÇÃO (VERSÃO 3.4)
+                if (customCatalogo.length > 0) {
+                    const correctedFiltered = customCatalogo.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search));
+                    if (correctedFiltered.length > 0) {
+                        grid.innerHTML += `
+                            <div class="section-divider">
+                                <p class="text-[10px] font-black uppercase text-[#D68C96] tracking-[0.2em]">Painel de Controle de Personalização</p>
+                            </div>
+                            <div class="space-y-3">
+                                ${correctedFiltered.map(c => `
+                                    <div class="exception-card">
+                                        <div class="w-12 h-12 rounded-full border-2 border-white shadow-sm flex-shrink-0" style="background: ${c.cor}"></div>
+                                        <div class="flex-1">
+                                            <p class="text-[12px] font-black text-[#8E5D67]">#${c.numero}</p>
+                                            <p class="text-[9px] font-bold opacity-30 uppercase">${c.nome}</p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="openEditColor('${c.numero}')" class="p-3 bg-rose-50 rounded-full text-[#F4ACB7] btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                            <button onclick="confirmDeleteCustomColor('${c.id}', '${c.numero}')" class="p-3 bg-red-50 rounded-full text-red-400 btn-action"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
                 }
 
-                allMeadas.sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
-                let filtered = allMeadas.filter(m => m.numero.includes(search) || m.nome.toLowerCase().includes(search));
+                // SEÇÃO: CATÁLOGO COMPLETO
+                grid.innerHTML += `
+                    <div class="section-divider">
+                        <p class="text-[10px] font-black uppercase text-gray-300 tracking-[0.2em]">Catálogo Oficial / Todas as Cores</p>
+                    </div>
+                `;
+
+                const fullList = [...Object.entries(anchorOficial).map(([num, d]) => ({numero: num, nome: d.n}))];
+                const uniqueFull = Array.from(new Set(fullList.map(a => a.numero)))
+                    .map(num => fullList.find(a => a.numero === num))
+                    .sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
+
+                grid.innerHTML += `
+                    <div class="grid grid-cols-3 gap-4 pb-20">
+                        ${uniqueFull.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search)).map(c => `
+                            <div class="catalog-grid-item" style="background: ${getEffectiveColor(c.numero)}" onclick="showToast('${c.nome}')">
+                                <button onclick="event.stopPropagation(); openEditColor('${c.numero}')" class="edit-side-btn btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                <span class="catalog-code-badge">${c.numero}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                grid.className = "px-6 grid gap-6 animate-pop";
+                let headerActions = "";
+                
+                if(currentTab === 'estoque') {
+                    headerActions = `<div class="w-full p-4 rounded-3xl bg-pink-50 border border-pink-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase text-pink-400 mb-2">Linhas em meu estoque físico</div>`;
+                } else if(currentTab === 'compras') {
+                    headerActions = `<button onclick="openAddModal('compras')" class="w-full p-5 rounded-[2.5rem] bg-rose-100 border-2 border-dashed border-rose-300 flex items-center justify-center gap-3 text-sm font-black uppercase text-[#8E5D67] btn-action mb-4 shadow-sm"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Adicionar à Lista de Compras</button>`;
+                }
+
+                const uniqueMap = new Map();
+                allMeadas.forEach(m => uniqueMap.set(m.id, m));
+                const uniqueMeadas = Array.from(uniqueMap.values()).sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
+
+                let filtered = uniqueMeadas.filter(m => m.numero.includes(search) || m.nome.toLowerCase().includes(search));
                 
                 if (currentTab === 'estoque') {
                     filtered = filtered.filter(m => m.quantidade > 0);
                 } else if (currentTab === 'compras') {
-                    filtered = filtered.filter(m => {
-                        const isCritical = m.quantidade <= m.minimo && m.minimo > 0;
-                        const isPlanned = m.quantidade === 0 && m.minimo === 0 && m.updatedAt;
-                        const isNotHidden = !m.hiddenFromShoppingList;
-                        return (isCritical || isPlanned) && isNotHidden;
-                    });
+                    filtered = filtered.filter(m => m.quantidade === 0 && !m.hiddenFromShoppingList);
                 }
 
                 grid.innerHTML = headerActions + filtered.map(m => `
-                    <div class="glass-card rounded-[3rem] p-8 flex flex-col items-center relative overflow-hidden">
+                    <div class="glass-card rounded-[3rem] p-8 flex flex-col items-center relative overflow-hidden" data-id="${m.id}">
                         <div class="spool-box mb-4" style="background: ${getEffectiveColor(m.numero)}"></div>
                         <h2 class="text-5xl font-black text-[#8E5D67]">#${m.numero}</h2>
                         <p class="text-base font-bold opacity-30 mb-6 italic text-center">${m.nome}</p>
                         
-                        <!-- REQUISITO 3: Sinalização Direta OUTRA MARCA -->
                         ${m.outraMarca ? `
                             <div class="absolute top-6 right-6 flex items-center gap-1 bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter">
                                 <i data-lucide="award" class="w-3 h-3"></i> OUTRA MARCA
@@ -747,7 +846,7 @@
                         ` : `
                             <div class="w-full flex items-center justify-between bg-rose-50/40 p-4 rounded-full border border-pink-50 mb-4">
                                 <button onclick="quickUpdate('${m.id}', -1)" class="w-14 h-14 rounded-full bg-white shadow flex items-center justify-center text-3xl font-black btn-action">-</button>
-                                <div class="text-center"><span class="text-4xl font-black ${m.quantidade <= m.minimo ? 'text-red-400' : 'text-[#8E5D67]'}">${m.quantidade}</span></div>
+                                <div class="text-center"><span class="text-4xl font-black text-[#8E5D67]">${m.quantidade}</span></div>
                                 <button onclick="quickUpdate('${m.id}', 1)" class="w-14 h-14 rounded-full bg-[#F4ACB7] text-white shadow flex items-center justify-center text-3xl font-black btn-action">+</button>
                             </div>
                             <div class="flex gap-4">
@@ -755,52 +854,63 @@
                                 <button onclick="confirmRemoveFromCaixa('${m.id}')" class="text-[9px] font-black text-red-300 uppercase flex items-center gap-2 btn-action">Retirar</button>
                             </div>
                         `}
-                        ${m.quantidade <= m.minimo && currentTab === 'estoque' ? `<div class="absolute top-6 left-6 bg-red-400 text-white text-[8px] font-black px-3 py-1 rounded-full uppercase">Falta</div>` : ''}
                     </div>
                 `).join('');
             }
             lucide.createIcons();
         };
 
-        onSnapshot(query(meadasCol), (s) => { allMeadas = s.docs.map(d => ({id: d.id, ...d.data()})); renderApp(); });
-        onSnapshot(query(catalogoCol), (s) => { customCatalogo = s.docs.map(d => ({id: d.id, ...d.data()})); renderApp(); });
+        onSnapshot(query(meadasCol), (s) => { 
+            allMeadas = s.docs.map(d => ({id: d.id, ...d.data()})); 
+            renderApp(); 
+        });
+        
+        onSnapshot(query(catalogoCol), (s) => { 
+            customCatalogo = s.docs.map(d => ({id: d.id, ...d.data()})); 
+            renderApp(); 
+        });
         
         window.openAddModal = (source) => { 
             editingId = null; 
             document.getElementById('modalAdd').classList.remove('hidden'); 
-            document.getElementById('modalTitle').innerText = "Nova Meada";
+            document.getElementById('modalTitle').innerText = source === 'compras' ? "Nova Lista de Compra" : "Nova Meada";
             document.getElementById('meadaNumeroDisplay').innerText = "00000"; 
+            document.getElementById('meadaNumeroRaw').value = "";
             document.getElementById('meadaOutraMarca').checked = false;
+            document.getElementById('meadaNome').value = "";
             document.getElementById('duplicateWarning').classList.add('hidden');
             
             if(source === 'compras') { 
                 document.getElementById('meadaQtd').value = 0; 
-                document.getElementById('meadaMin').value = 1; 
-                document.getElementById('qtdInputBox').style.borderColor = "#F8C8DC"; 
+                document.getElementById('qtdInputBox').classList.add('ring-2', 'ring-rose-200');
             } else { 
                 document.getElementById('meadaQtd').value = 1; 
-                document.getElementById('meadaMin').value = 1; 
-                document.getElementById('qtdInputBox').style.borderColor = "transparent"; 
+                document.getElementById('qtdInputBox').classList.remove('ring-2', 'ring-rose-200');
             } 
+            checkDuplicate();
         };
 
         window.closeModal = () => document.getElementById('modalAdd').classList.add('hidden');
         
         window.editMeada = (id) => { 
             const m = allMeadas.find(x => x.id === id); 
+            if (!m) return;
             editingId = id; 
             document.getElementById('modalTitle').innerText = "Editar Meada";
             document.getElementById('meadaNumeroDisplay').innerText = m.numero; 
+            document.getElementById('meadaNumeroRaw').value = m.numero;
             document.getElementById('meadaNome').value = m.nome; 
             document.getElementById('meadaQtd').value = m.quantidade; 
-            document.getElementById('meadaMin').value = m.minimo; 
             document.getElementById('meadaOutraMarca').checked = m.outraMarca || false;
             document.getElementById('duplicateWarning').classList.add('hidden');
             document.getElementById('modalAdd').classList.remove('hidden'); 
+            checkDuplicate();
         };
 
-        lucide.createIcons(); 
-        switchTab('estoque');
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons(); 
+            switchTab('estoque');
+        });
     </script>
 </body>
 </html>
