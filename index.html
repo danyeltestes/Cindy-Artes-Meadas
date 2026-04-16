@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CA - Cindy Artes v3.4</title>
+    <title>CA - Cindy Artes v4.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -48,29 +48,6 @@
             transition: transform 0.1s ease;
         }
         .catalog-grid-item:active { transform: scale(0.92); }
-
-        .edit-side-btn {
-            position: absolute;
-            right: 6px;
-            background: rgba(255,255,255,0.9);
-            padding: 6px;
-            border-radius: 99px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            color: var(--rose-primary);
-            z-index: 10;
-        }
-
-        .delete-side-btn {
-            position: absolute;
-            left: 6px;
-            top: 6px;
-            background: rgba(255,255,255,0.9);
-            padding: 6px;
-            border-radius: 99px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            color: #ef4444;
-            z-index: 10;
-        }
 
         .catalog-code-badge {
             background: rgba(255,255,255,0.85);
@@ -138,18 +115,6 @@
             width: 100%;
             text-align: center;
         }
-
-        .exception-card {
-            background: white;
-            border-radius: 2rem;
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            border: 1px solid rgba(244, 172, 183, 0.1);
-        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -160,8 +125,8 @@
         <header class="pt-12 pb-6 px-8 text-center relative">
             <h1 class="text-7xl font-serif text-[#D68C96] italic leading-none tracking-tighter">CA</h1>
             <p class="text-[9px] font-black uppercase tracking-[0.4em] opacity-40 mt-3">Cindy Artes Meadas</p>
-            <!-- VERSÃO ATUALIZADA 3.4 -->
-            <p class="text-[7px] font-bold opacity-30 mt-1 uppercase tracking-widest bg-pink-50/50 py-1 px-3 rounded-full inline-block">Versão CAM.16.04#3.4 • Painel de Controle de Personalização</p>
+            <!-- VERSÃO ATUALIZADA 4.0 -->
+            <p class="text-[7px] font-bold opacity-30 mt-1 uppercase tracking-widest bg-pink-50/50 py-1 px-3 rounded-full inline-block">Versão CAM.16.04#4 • Controle de Estoque e Compras</p>
         </header>
 
         <!-- NAVEGAÇÃO SUPERIOR -->
@@ -198,9 +163,10 @@
         <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl animate-pop overflow-y-auto max-h-[85vh]">
             <h2 id="modalTitle" class="text-3xl font-serif text-[#8E5D67] mb-8 text-center">Nova Meada</h2>
             
-            <div id="duplicateWarning" class="hidden mb-6 p-4 bg-orange-50 border border-orange-100 rounded-2xl flex items-center gap-3">
-                <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-400"></i>
-                <p id="duplicateWarningText" class="text-[10px] font-bold text-orange-600 leading-tight">Este código já está na sua lista!</p>
+            <!-- AVISO DE DUPLICIDADE RIGÍDO -->
+            <div id="duplicateWarning" class="hidden mb-6 p-5 bg-red-50 border-2 border-red-100 rounded-[2rem] flex items-center gap-3">
+                <i data-lucide="shield-alert" class="w-6 h-6 text-red-400"></i>
+                <p id="duplicateWarningText" class="text-[11px] font-black text-red-600 leading-tight uppercase tracking-tighter">Erro: Código já cadastrado nesta categoria!</p>
             </div>
 
             <div class="space-y-6">
@@ -233,12 +199,12 @@
                 
                 <div class="flex flex-col gap-4">
                     <div class="bg-rose-50 p-6 rounded-[2.5rem] text-center" id="qtdInputBox">
-                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Quantidade em Estoque</label>
+                        <label class="text-[9px] font-black opacity-30 mb-1 block uppercase tracking-tighter">Quantidade Inicial</label>
                         <input type="number" id="meadaQtd" value="1" class="w-full bg-transparent text-center text-5xl font-black outline-none text-[#D68C96]">
                     </div>
                 </div>
                 
-                <button id="btnSaveMeada" onclick="saveMeada()" class="w-full py-6 bg-[#F4ACB7] text-white rounded-[2.5rem] text-xl font-black shadow-lg btn-action">Salvar Meada</button>
+                <button id="btnSaveMeada" onclick="saveMeada()" class="w-full py-6 bg-[#F4ACB7] text-white rounded-[2.5rem] text-xl font-black shadow-lg btn-action">Confirmar Inclusão</button>
                 <button onclick="closeModal()" class="w-full py-3 text-[10px] font-black opacity-20 uppercase tracking-[0.3em]">Cancelar</button>
             </div>
         </div>
@@ -270,27 +236,12 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR COR DO CATÁLOGO -->
-    <div id="modalEditColor" class="fixed inset-0 modal-overlay z-[200] hidden flex items-center justify-center p-6 text-center">
-        <div class="bg-white w-full max-w-sm rounded-[3.5rem] p-10 shadow-2xl animate-pop">
-            <h2 id="editColorTitle" class="text-3xl font-serif text-[#8E5D67] mb-6">Ajustar Tom</h2>
-            <div class="flex flex-col items-center gap-6">
-                <input type="color" id="editColorPicker" class="w-40 h-40 rounded-full border-[10px] border-white shadow-2xl cursor-pointer">
-                <p class="text-[10px] font-black opacity-30 uppercase tracking-widest leading-relaxed px-4">Toque no círculo para escolher o tom exato da sua linha física</p>
-                <div class="w-full space-y-3">
-                    <button id="saveEditColorBtn" class="w-full py-5 bg-[#F4ACB7] text-white rounded-full font-black text-lg btn-action shadow-lg">Confirmar Tom</button>
-                    <button onclick="closeEditColorModal()" class="w-full py-3 text-[10px] font-black opacity-30 uppercase text-center">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- TOAST -->
     <div id="toast" class="fixed top-12 left-1/2 -translate-x-1/2 px-8 py-4 bg-[#8E5D67] text-white rounded-full font-black shadow-2xl opacity-0 transition-all z-[400] pointer-events-none text-[10px] uppercase tracking-widest text-center"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCmobt2CzDNEiWB2yUA1E3q1I8cbhGg45s",
@@ -304,7 +255,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const meadasCol = collection(db, "meadas");
-        const catalogoCol = collection(db, "catalogo");
 
         // --- BANCO DE DADOS ANCHOR (FALLBACK) ---
         const anchorOficial = {
@@ -509,18 +459,18 @@
 
         let currentTab = 'estoque';
         let allMeadas = [];
-        let customCatalogo = [];
         let editingId = null;
         let pendingBuyId = null;
         let pendingConfirmAction = null;
         let toastTimeout = null;
+        let currentSource = 'estoque'; // Rastreia de onde o modal foi aberto
 
+        // A cor agora é estritamente a oficial
         const getEffectiveColor = (code) => {
-            const custom = customCatalogo.find(c => c.numero === code);
-            if (custom && custom.cor) return custom.cor;
             return (anchorOficial[code]?.c || '#F4ACB7');
         };
 
+        // --- SISTEMA DE BLOQUEIO DE DUPLICIDADE 100% ---
         window.checkDuplicate = () => {
             const num = document.getElementById('meadaNumeroDisplay').innerText;
             const isOutraMarca = document.getElementById('meadaOutraMarca').checked;
@@ -528,6 +478,7 @@
             const warnText = document.getElementById('duplicateWarningText');
             const btnSave = document.getElementById('btnSaveMeada');
 
+            // Se estivermos editando um registro existente, permitimos (o ID já existe)
             if (editingId) { 
                 warn.classList.add('hidden'); 
                 btnSave.disabled = false;
@@ -535,20 +486,27 @@
                 return; 
             }
 
+            // Procurar em TODO o banco de dados carregado
+            // Independente de ser Branco ou qualquer outra cor
             const match = allMeadas.find(m => m.numero === num && m.outraMarca === isOutraMarca);
 
             if (match) {
-                if (match.quantidade > 0) {
+                // Se eu estou tentando adicionar no ESTOQUE e ela já tem quantidade > 0
+                if (currentSource === 'estoque' && match.quantidade > 0) {
                     warn.classList.remove('hidden');
-                    warnText.innerText = "Atenção: Esta cor já está no seu estoque!";
+                    warnText.innerText = "BLOQUEADO: Esta meada já está no seu Estoque!";
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50');
-                } else if (!match.hiddenFromShoppingList) {
+                } 
+                // Se eu estou tentando adicionar na LISTA DE COMPRAS e ela já está lá (qtd 0 e não oculta)
+                else if (currentSource === 'compras' && match.quantidade === 0 && !match.hiddenFromShoppingList) {
                     warn.classList.remove('hidden');
-                    warnText.innerText = "Erro: Já está na lista de compras!";
+                    warnText.innerText = "BLOQUEADO: Já está na sua Lista de Compras!";
                     btnSave.disabled = true;
                     btnSave.classList.add('opacity-50');
-                } else {
+                }
+                // Se ela está cadastrada mas em outra categoria, permitimos o fluxo normal de atualização via salvar
+                else {
                     warn.classList.add('hidden');
                     btnSave.disabled = false;
                     btnSave.classList.remove('opacity-50');
@@ -565,19 +523,19 @@
             const formatted = numbers.padStart(5, '0');
             document.getElementById('meadaNumeroDisplay').innerText = formatted;
             
-            const custom = customCatalogo.find(c => c.numero === formatted);
             const oficial = anchorOficial[formatted];
             
-            if (custom || oficial) {
-                const info = custom || oficial;
-                document.getElementById('suggestName').innerText = info.n || info.nome;
+            if (oficial) {
+                document.getElementById('suggestName').innerText = oficial.n;
                 document.getElementById('suggestColorPreview').style.background = getEffectiveColor(formatted);
                 document.getElementById('suggestionBox').classList.remove('hidden');
                 document.getElementById('applySuggest').onclick = () => {
-                    document.getElementById('meadaNome').value = info.n || info.nome;
+                    document.getElementById('meadaNome').value = oficial.n;
                     document.getElementById('suggestionBox').classList.add('hidden');
                 };
-            } else { document.getElementById('suggestionBox').classList.add('hidden'); }
+            } else { 
+                document.getElementById('suggestionBox').classList.add('hidden'); 
+            }
             
             checkDuplicate();
         };
@@ -591,6 +549,7 @@
             
             const plusBtn = document.getElementById('main-plus-btn');
             if(plusBtn) {
+                // Botão de adicionar apenas no estoque
                 if(tab === 'estoque') plusBtn.classList.remove('hidden');
                 else plusBtn.classList.add('hidden');
             }
@@ -602,12 +561,29 @@
             const num = document.getElementById('meadaNumeroDisplay').innerText;
             const nome = document.getElementById('meadaNome').value;
             const outraMarca = document.getElementById('meadaOutraMarca').checked;
-            const qtd = parseInt(document.getElementById('meadaQtd').value);
+            let qtd = parseInt(document.getElementById('meadaQtd').value);
 
+            // Validação final de segurança antes de gravar
             if (!editingId) {
                 const dup = allMeadas.find(m => m.numero === num && m.outraMarca === outraMarca);
-                if (dup && (dup.quantidade > 0 || !dup.hiddenFromShoppingList)) {
-                    showToast("Erro: Código Duplicado!");
+                if (currentSource === 'estoque' && dup && dup.quantidade > 0) {
+                    showToast("Erro: Já está no Estoque!");
+                    return;
+                }
+                if (currentSource === 'compras' && dup && dup.quantidade === 0 && !dup.hiddenFromShoppingList) {
+                    showToast("Erro: Já está nas Compras!");
+                    return;
+                }
+                
+                // Se ela existia como "oculta" na lista de compras ou estoque 0, nós apenas a "reativamos"
+                if (dup) {
+                    await updateDoc(doc(db, "meadas", dup.id), {
+                        quantidade: isNaN(qtd) ? 0 : qtd,
+                        hiddenFromShoppingList: false,
+                        updatedAt: Date.now()
+                    });
+                    closeModal();
+                    showToast("Registro Atualizado!");
                     return;
                 }
             }
@@ -659,8 +635,14 @@
             lucide.createIcons();
         };
 
-        window.closeConfirm = () => { document.getElementById('modalConfirm').classList.add('hidden'); pendingConfirmAction = null; };
-        document.getElementById('confirmBtn').onclick = () => { if (pendingConfirmAction) pendingConfirmAction(); };
+        window.closeConfirm = () => { 
+            document.getElementById('modalConfirm').classList.add('hidden'); 
+            pendingConfirmAction = null; 
+        };
+        
+        document.getElementById('confirmBtn').onclick = () => { 
+            if (pendingConfirmAction) pendingConfirmAction(); 
+        };
 
         window.openBuyModal = (id) => {
             const m = allMeadas.find(x => x.id === id);
@@ -693,52 +675,6 @@
             await updateDoc(doc(db, "meadas", id), updateData);
         };
 
-        window.openEditColor = (code) => {
-            document.getElementById('editColorTitle').innerText = `#${code}`;
-            const currentCol = getEffectiveColor(code);
-            document.getElementById('editColorPicker').value = currentCol.startsWith('#') ? currentCol : '#F4ACB7';
-            document.getElementById('modalEditColor').classList.remove('hidden');
-            window.pendingEditColorCode = code;
-        };
-        window.closeEditColorModal = () => document.getElementById('modalEditColor').classList.add('hidden');
-        
-        document.getElementById('saveEditColorBtn').onclick = async () => {
-            const newHex = document.getElementById('editColorPicker').value;
-            const code = window.pendingEditColorCode;
-            const existing = customCatalogo.find(c => c.numero === code);
-            const name = anchorOficial[code]?.n || "Cor Custom";
-            
-            try {
-                if (existing) {
-                    await updateDoc(doc(db, "catalogo", existing.id), { cor: newHex });
-                } else {
-                    await addDoc(catalogoCol, { numero: code, nome: name, cor: newHex });
-                }
-                closeEditColorModal();
-                showToast("Tom atualizado em todo o app!");
-            } catch (e) {
-                showToast("Erro ao salvar tom.");
-            }
-        };
-
-        /**
-         * FUNÇÃO EXCLUIR CORREÇÃO (NOVIDADE 3.4)
-         * Remove o registro de exceção do banco de dados.
-         */
-        window.confirmDeleteCustomColor = (id, code) => {
-            pendingConfirmAction = async () => {
-                await deleteDoc(doc(db, "catalogo", id));
-                showToast("Tom restaurado para o original!");
-                closeConfirm();
-            };
-            document.getElementById('confirmTitle').innerText = "Excluir Correção?";
-            document.getElementById('confirmDesc').innerText = `A meada #${code} voltará a exibir a cor padrão de fábrica.`;
-            document.getElementById('confirmIcon').innerHTML = '<i data-lucide="trash-2" class="w-8 h-8"></i>';
-            document.getElementById('confirmIcon').className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-red-50 text-red-400";
-            document.getElementById('modalConfirm').classList.remove('hidden');
-            lucide.createIcons();
-        };
-
         window.showToast = (msg) => {
             const t = document.getElementById('toast');
             if(toastTimeout) clearTimeout(toastTimeout);
@@ -755,37 +691,9 @@
                 grid.className = "px-6 grid gap-4 animate-pop";
                 grid.innerHTML = "";
 
-                // SEÇÃO: PAINEL DE CONTROLE DE PERSONALIZAÇÃO (VERSÃO 3.4)
-                if (customCatalogo.length > 0) {
-                    const correctedFiltered = customCatalogo.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search));
-                    if (correctedFiltered.length > 0) {
-                        grid.innerHTML += `
-                            <div class="section-divider">
-                                <p class="text-[10px] font-black uppercase text-[#D68C96] tracking-[0.2em]">Painel de Controle de Personalização</p>
-                            </div>
-                            <div class="space-y-3">
-                                ${correctedFiltered.map(c => `
-                                    <div class="exception-card">
-                                        <div class="w-12 h-12 rounded-full border-2 border-white shadow-sm flex-shrink-0" style="background: ${c.cor}"></div>
-                                        <div class="flex-1">
-                                            <p class="text-[12px] font-black text-[#8E5D67]">#${c.numero}</p>
-                                            <p class="text-[9px] font-bold opacity-30 uppercase">${c.nome}</p>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button onclick="openEditColor('${c.numero}')" class="p-3 bg-rose-50 rounded-full text-[#F4ACB7] btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                                            <button onclick="confirmDeleteCustomColor('${c.id}', '${c.numero}')" class="p-3 bg-red-50 rounded-full text-red-400 btn-action"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    }
-                }
-
-                // SEÇÃO: CATÁLOGO COMPLETO
                 grid.innerHTML += `
                     <div class="section-divider">
-                        <p class="text-[10px] font-black uppercase text-gray-300 tracking-[0.2em]">Catálogo Oficial / Todas as Cores</p>
+                        <p class="text-[10px] font-black uppercase text-gray-300 tracking-[0.2em]">Catálogo Oficial de Cores</p>
                     </div>
                 `;
 
@@ -798,7 +706,6 @@
                     <div class="grid grid-cols-3 gap-4 pb-20">
                         ${uniqueFull.filter(c => c.numero.includes(search) || c.nome.toLowerCase().includes(search)).map(c => `
                             <div class="catalog-grid-item" style="background: ${getEffectiveColor(c.numero)}" onclick="showToast('${c.nome}')">
-                                <button onclick="event.stopPropagation(); openEditColor('${c.numero}')" class="edit-side-btn btn-action"><i data-lucide="pencil" class="w-4 h-4"></i></button>
                                 <span class="catalog-code-badge">${c.numero}</span>
                             </div>
                         `).join('')}
@@ -809,14 +716,12 @@
                 let headerActions = "";
                 
                 if(currentTab === 'estoque') {
-                    headerActions = `<div class="w-full p-4 rounded-3xl bg-pink-50 border border-pink-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase text-pink-400 mb-2">Linhas em meu estoque físico</div>`;
+                    headerActions = `<div class="w-full p-4 rounded-3xl bg-pink-50 border border-pink-100 flex items-center justify-center gap-3 text-[10px] font-black uppercase text-pink-400 mb-2">Itens em Estoque Físico</div>`;
                 } else if(currentTab === 'compras') {
                     headerActions = `<button onclick="openAddModal('compras')" class="w-full p-5 rounded-[2.5rem] bg-rose-100 border-2 border-dashed border-rose-300 flex items-center justify-center gap-3 text-sm font-black uppercase text-[#8E5D67] btn-action mb-4 shadow-sm"><i data-lucide="shopping-bag" class="w-5 h-5"></i> Adicionar à Lista de Compras</button>`;
                 }
 
-                const uniqueMap = new Map();
-                allMeadas.forEach(m => uniqueMap.set(m.id, m));
-                const uniqueMeadas = Array.from(uniqueMap.values()).sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
+                const uniqueMeadas = allMeadas.sort((a,b) => a.numero.localeCompare(b.numero, undefined, {numeric: true}));
 
                 let filtered = uniqueMeadas.filter(m => m.numero.includes(search) || m.nome.toLowerCase().includes(search));
                 
@@ -827,7 +732,7 @@
                 }
 
                 grid.innerHTML = headerActions + filtered.map(m => `
-                    <div class="glass-card rounded-[3rem] p-8 flex flex-col items-center relative overflow-hidden" data-id="${m.id}">
+                    <div class="glass-card rounded-[3rem] p-8 flex flex-col items-center relative overflow-hidden">
                         <div class="spool-box mb-4" style="background: ${getEffectiveColor(m.numero)}"></div>
                         <h2 class="text-5xl font-black text-[#8E5D67]">#${m.numero}</h2>
                         <p class="text-base font-bold opacity-30 mb-6 italic text-center">${m.nome}</p>
@@ -850,7 +755,7 @@
                                 <button onclick="quickUpdate('${m.id}', 1)" class="w-14 h-14 rounded-full bg-[#F4ACB7] text-white shadow flex items-center justify-center text-3xl font-black btn-action">+</button>
                             </div>
                             <div class="flex gap-4">
-                                <button onclick="editMeada('${m.id}')" class="text-[9px] font-black opacity-30 uppercase flex items-center gap-2 btn-action">Editar</button>
+                                <button onclick="editMeada('${m.id}')" class="text-[9px] font-black opacity-30 uppercase flex items-center gap-2 btn-action">Editar Info</button>
                                 <button onclick="confirmRemoveFromCaixa('${m.id}')" class="text-[9px] font-black text-red-300 uppercase flex items-center gap-2 btn-action">Retirar</button>
                             </div>
                         `}
@@ -865,15 +770,11 @@
             renderApp(); 
         });
         
-        onSnapshot(query(catalogoCol), (s) => { 
-            customCatalogo = s.docs.map(d => ({id: d.id, ...d.data()})); 
-            renderApp(); 
-        });
-        
         window.openAddModal = (source) => { 
             editingId = null; 
+            currentSource = source;
             document.getElementById('modalAdd').classList.remove('hidden'); 
-            document.getElementById('modalTitle').innerText = source === 'compras' ? "Nova Lista de Compra" : "Nova Meada";
+            document.getElementById('modalTitle').innerText = source === 'compras' ? "Nova Compra" : "Novo Estoque";
             document.getElementById('meadaNumeroDisplay').innerText = "00000"; 
             document.getElementById('meadaNumeroRaw').value = "";
             document.getElementById('meadaOutraMarca').checked = false;
@@ -882,10 +783,10 @@
             
             if(source === 'compras') { 
                 document.getElementById('meadaQtd').value = 0; 
-                document.getElementById('qtdInputBox').classList.add('ring-2', 'ring-rose-200');
+                document.getElementById('qtdInputBox').classList.add('hidden');
             } else { 
                 document.getElementById('meadaQtd').value = 1; 
-                document.getElementById('qtdInputBox').classList.remove('ring-2', 'ring-rose-200');
+                document.getElementById('qtdInputBox').classList.remove('hidden');
             } 
             checkDuplicate();
         };
@@ -896,13 +797,15 @@
             const m = allMeadas.find(x => x.id === id); 
             if (!m) return;
             editingId = id; 
-            document.getElementById('modalTitle').innerText = "Editar Meada";
+            currentSource = m.quantidade > 0 ? 'estoque' : 'compras';
+            document.getElementById('modalTitle').innerText = "Editar Registro";
             document.getElementById('meadaNumeroDisplay').innerText = m.numero; 
             document.getElementById('meadaNumeroRaw').value = m.numero;
             document.getElementById('meadaNome').value = m.nome; 
             document.getElementById('meadaQtd').value = m.quantidade; 
             document.getElementById('meadaOutraMarca').checked = m.outraMarca || false;
             document.getElementById('duplicateWarning').classList.add('hidden');
+            document.getElementById('qtdInputBox').classList.remove('hidden');
             document.getElementById('modalAdd').classList.remove('hidden'); 
             checkDuplicate();
         };
